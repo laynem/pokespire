@@ -31,29 +31,32 @@ function seededRand(seed: number) {
 }
 
 function GrassTexture({ seed }: { seed: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [bgUrl, setBgUrl] = useState('');
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d')!;
     const rand = seededRand(seed);
-    for (let y = 0; y < 64; y++) {
-      for (let x = 0; x < 64; x++) {
+    for (let y = 0; y < 32; y++) {
+      for (let x = 0; x < 32; x++) {
         ctx.fillStyle = GRASS_PALETTE[Math.floor(rand() * GRASS_PALETTE.length)];
         ctx.fillRect(x, y, 1, 1);
       }
     }
+    setBgUrl(canvas.toDataURL());
   }, [seed]);
 
+  if (!bgUrl) return null;
   return (
-    <canvas
-      ref={canvasRef}
-      width={64}
-      height={64}
-      className="absolute inset-0 w-full h-full pointer-events-none opacity-70"
-      style={{ imageRendering: 'pixelated', objectFit: 'cover' }}
+    <div
+      className="absolute inset-0 pointer-events-none opacity-80"
+      style={{
+        backgroundImage: `url(${bgUrl})`,
+        backgroundSize: '128px 128px',
+        imageRendering: 'pixelated',
+      }}
     />
   );
 }

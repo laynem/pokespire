@@ -15,7 +15,7 @@ const TRAINERS: TrainerCard[] = [
   {
     id: 'ash',
     name: 'Ash',
-    sprite: '🧢',
+    sprite: 'https://play.pokemonshowdown.com/sprites/trainers/ash.png',
     flavour: 'A boy from Pallet Town with dreams of becoming a Pokémon Master.',
     passive: 'Never Give Up',
     passiveDesc: 'When a Pokémon faints, the next one sent in draws +1 extra card.',
@@ -24,7 +24,7 @@ const TRAINERS: TrainerCard[] = [
   {
     id: 'misty',
     name: 'Misty',
-    sprite: '🌊',
+    sprite: 'https://play.pokemonshowdown.com/sprites/trainers/misty.png',
     flavour: 'Coming soon.',
     passive: '???',
     passiveDesc: 'Locked.',
@@ -33,7 +33,7 @@ const TRAINERS: TrainerCard[] = [
   {
     id: 'brock',
     name: 'Brock',
-    sprite: '🪨',
+    sprite: 'https://play.pokemonshowdown.com/sprites/trainers/brock.png',
     flavour: 'Coming soon.',
     passive: '???',
     passiveDesc: 'Locked.',
@@ -70,7 +70,12 @@ export default function CharacterSelectScreen() {
             {t.locked && (
               <span className="absolute top-2 right-2 text-xs text-gray-500">🔒</span>
             )}
-            <span className="text-5xl">{t.sprite}</span>
+            <img
+              src={t.sprite}
+              alt={t.name}
+              className="w-20 h-20 object-contain object-top"
+              style={{ imageRendering: 'pixelated' }}
+            />
             <span className="font-semibold">{t.name}</span>
           </button>
         ))}

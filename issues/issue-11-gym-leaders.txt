@@ -1,0 +1,45 @@
+ISSUE #11 — Gym Leaders & Boss Encounters
+Type: AFK | Blocked by: Issue #8
+
+WHAT TO BUILD
+Three scripted boss encounters, one closing each act. Each Gym Leader has a themed
+team as close to their original Gen 1 lineup as possible. Winning grants a Gym Badge
+with a passive run bonus and a guaranteed item reward.
+
+--- BROCK (Act 1 Boss) — Boulder Badge ---
+Party:
+  - Geodude  Lv12 | Rock/Ground | Tackle, Defense Curl, Rock Throw
+  - Onix     Lv14 | Rock/Ground | Tackle, Screech, Rock Throw, Bind
+AI pattern: Leads with Geodude. Switches to Onix when Geodude faints.
+            Prioritises Screech to lower player Defense before attacking.
+Badge bonus: All party Pokemon gain +10% Defense permanently
+
+--- MISTY (Act 2 Boss) — Cascade Badge ---
+Party:
+  - Staryu   Lv18 | Water        | Water Gun, Rapid Spin, Harden
+  - Starmie  Lv21 | Water/Psychic| Water Gun, Psychic, Swift, Recover
+AI pattern: Leads with Staryu. Starmie uses Recover when below 40% HP.
+Badge bonus: All Water-type moves deal +15% damage
+
+--- LT. SURGE (Act 3 Boss) — Thunder Badge ---
+Party:
+  - Voltorb  Lv21 | Electric | Thundershock, Screech, Sonic Boom
+  - Pikachu  Lv18 | Electric | Thunderbolt, Quick Attack, Thunder Wave
+  - Raichu   Lv24 | Electric | Thunderbolt, Mega Punch, Thunder Wave, Slam
+AI pattern: Leads with Voltorb. Prioritises Thunder Wave to paralyse.
+            Raichu sweeps once player is debilitated.
+Badge bonus: All party Pokemon gain +1 energy on the first turn of each combat
+
+Rewards (all bosses):
+  - Large gold reward (150-200g)
+  - Choice of 1 of 2 rare items
+  - Gym Badge added to run state
+
+ACCEPTANCE CRITERIA
+[ ] Each Gym Leader has correct scripted Pokemon team with accurate Gen 1 moves
+[ ] Enemy AI follows described patterns (switching, healing, status priority)
+[ ] Badge awarded and stored in runStore on win
+[ ] Badge passive bonus applies correctly for the rest of the run
+[ ] Boss encounter has distinct visual treatment (gym arena background)
+[ ] Post-boss reward screen shows gold + item choice
+[ ] Defeating Lt. Surge triggers the victory screen

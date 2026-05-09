@@ -1,0 +1,27 @@
+ISSUE #7 — Post-Combat Rewards & Move Draft
+Type: AFK | Blocked by: Issue #6
+
+WHAT TO BUILD
+After winning any combat, show a reward screen. Player earns gold and is offered
+a move draft: pick 1 of 3 moves to add to the active Pokemon's deck, or skip.
+
+Reward screen shows:
+  - Gold earned (wild battle: 10-20g, trainer battle: 25-40g)
+  - Move draft: 3 move cards drawn from the active Pokemon's full Gen 1 learnset
+      Each card shows: name, type, energy cost, power/effect
+  - "Skip" option to take gold only and continue
+
+Rules:
+  - Moves already in the Pokemon's deck are excluded from the draft pool
+  - If all learnable moves are already in deck, skip draft and award bonus gold
+  - Draft is always for the Pokemon that finished the combat (the active one)
+  - Party screen accessible from this screen to review full decks
+
+ACCEPTANCE CRITERIA
+[ ] Reward screen appears after every combat win
+[ ] Correct gold amount added to runStore
+[ ] 3 move cards shown, from Pokemon's Gen 1 learnset, excluding duplicates
+[ ] Selecting a move adds it to that Pokemon's move deck in runStore
+[ ] Skip option bypasses move addition
+[ ] Bonus gold awarded if no new moves available
+[ ] "Continue" button returns player to map

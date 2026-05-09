@@ -1,0 +1,34 @@
+ISSUE #4 — Map Generation & Navigation
+Type: AFK | Blocked by: Issue #1
+
+WHAT TO BUILD
+Procedurally generate a branching 3-act map themed as Pokemon routes leading to gyms.
+Player clicks nodes to advance. Each act ends with a Gym Leader boss node.
+
+Node types:
+  - Wild Battle    — combat vs a random wild Pokemon
+  - Trainer Battle — combat vs an NPC trainer with 1-2 Pokemon
+  - Pokemon Catch  — encounter a catchable Pokemon (no combat, see Issue #8)
+  - Pokemon Center — heal or swap a move (see Issue #10)
+  - Poke Mart      — spend gold on items/moves (see Issue #10)
+  - Gym Leader     — act boss (Brock / Misty / Lt. Surge)
+
+Map structure:
+  - 3 acts, each with ~12-15 nodes across 6-7 rows
+  - Branching paths (2-3 options per row)
+  - Gym Leader node is always the final node of each act
+  - Node weights: Wild Battle 35%, Trainer 25%, Catch 15%, Center 10%, Mart 10%, Elite 5%
+
+Theming:
+  - Act 1: Route 1 palette (greens, dirt paths)
+  - Act 2: Mt. Moon palette (cave blues/greys)
+  - Act 3: Viridian City palette (urban, darker)
+
+ACCEPTANCE CRITERIA
+[ ] Map generates with 3 acts and correct node type distribution
+[ ] Branching paths rendered with connecting lines between nodes
+[ ] Completed nodes visually marked; locked nodes greyed out
+[ ] Only nodes reachable from current position are clickable
+[ ] Gym Leader node always appears as the final node of each act
+[ ] Clicking a node navigates to the correct screen/encounter
+[ ] Map state persists in runStore between navigations

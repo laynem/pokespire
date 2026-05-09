@@ -29,6 +29,11 @@ export interface CombatState {
   combatUsedItems: string[];        // IDs used once-per-combat (Oran Berry)
   movesPlayedThisTurn: number;      // for Choice Band first-move bonus
   enemyFlinched: boolean;           // Kings Rock flinch
+  // Boss fields
+  enemyParty: CombatPokemon[];      // remaining boss team after active enemy
+  bossLeaderId: string | null;
+  bossName: string | null;
+  badges: string[];                 // earned badges for bonus effects
 }
 
 // Build a shuffled deck: each move repeated min(pp,3) times
@@ -197,6 +202,14 @@ export function applyMoveEffect(
     return { attacker, defender };
   }
 
+  if (move.effect === 'recover') {
+    const heal = Math.floor(attacker.maxHp * 0.5);
+    const newHp = Math.min(attacker.maxHp, attacker.currentHp + heal);
+    const actual = newHp - attacker.currentHp;
+    if (actual > 0) log.push(`${attacker.name} recovered ${actual} HP!`);
+    return { attacker: { ...attacker, currentHp: newHp }, defender };
+  }
+
   return { attacker, defender };
 }
 
@@ -257,6 +270,11 @@ export function playMove(
     if (choiceBand) log.push('Choice Band: +25% damage!');
 
     let dmg = calcDamage(move, player, enemy, multiplier, choiceBand);
+
+    // Cascade Badge: Water moves deal +15% damage
+    if (state.badges.includes('Cascade Badge') && move.type === 'Water') {
+      dmg = Math.floor(dmg * 1.15);
+    }
 
     // Quick Claw log (no speed system, just flavour)
     if (hasItem(items, 'quick_claw') && movesPlayedThisTurn === 0 && Math.random() < 0.2) {
@@ -321,6 +339,39 @@ export function pickEnemyMove(enemy: CombatPokemon): Move {
   return available[Math.floor(Math.random() * available.length)];
 }
 
+// --- Boss picks a move using leader-specific AI ---
+export function pickBossMove(bossLeaderId: string, enemy: CombatPokemon, player: CombatPokemon): Move {
+  const available = enemy.moves.filter((m) => (enemy.currentPp[m.id] ?? 0) > 0);
+  if (available.length === 0) return enemy.moves[0];
+
+  if (bossLeaderId === 'brock') {
+    const screech = available.find((m) => m.id === 'screech');
+    if (screech && player.statStages.defense > -2) return screech;
+    const rockThrow = available.find((m) => m.id === 'rock_throw');
+    if (rockThrow) return rockThrow;
+  }
+
+  if (bossLeaderId === 'misty') {
+    if (enemy.currentHp < enemy.maxHp * 0.4) {
+      const recover = available.find((m) => m.id === 'recover');
+      if (recover) return recover;
+    }
+  }
+
+  if (bossLeaderId === 'lt_surge') {
+    if (!player.status) {
+      const thunderWave = available.find((m) => m.id === 'thunder_wave');
+      if (thunderWave) return thunderWave;
+    }
+    const thunderbolt = available.find((m) => m.id === 'thunderbolt');
+    if (thunderbolt) return thunderbolt;
+  }
+
+  const damaging = available.filter((m) => m.power > 0);
+  const pool = damaging.length > 0 ? damaging : available;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // --- Enemy executes its intent ---
 export function executeEnemyTurn(state: CombatState): CombatState {
   const log = [...state.log];
@@ -350,6 +401,10 @@ export function executeEnemyTurn(state: CombatState): CombatState {
 
     if (move.power > 0 && multiplier > 0) {
       let dmg = calcDamage(move, enemy, player, multiplier);
+      // Boulder Badge: reduce all incoming damage by 10%
+      if (state.badges.includes('Boulder Badge')) {
+        dmg = Math.floor(dmg * 0.9);
+      }
       if (player.block > 0) {
         const absorbed = Math.min(player.block, dmg);
         dmg -= absorbed;
@@ -373,8 +428,10 @@ export function executeEnemyTurn(state: CombatState): CombatState {
     player = res.defender as CombatPokemon;
   }
 
-  // Pick next intent
-  const nextIntent = pickEnemyMove(enemy);
+  // Pick next intent using boss AI if applicable
+  const nextIntent = state.bossLeaderId
+    ? pickBossMove(state.bossLeaderId, enemy, player)
+    : pickEnemyMove(enemy);
 
   const newParty = [player, ...state.playerParty.slice(1)];
 
@@ -409,10 +466,17 @@ export function startPlayerTurn(state: CombatState): CombatState {
     }
   }
 
+  // Thunder Badge: +1 energy on the first turn of combat
+  let baseEnergy = 3;
+  if (state.badges.includes('Thunder Badge') && state.turn === 0) {
+    baseEnergy = 4;
+    log.push('Thunder Badge: +1 Energy!');
+  }
+
   let next: CombatState = {
     ...state,
     playerParty: finalParty,
-    playerEnergy: 3,
+    playerEnergy: baseEnergy,
     turn: state.turn + 1,
     phase: playerTick.skip ? 'enemy' : 'player',
     items,
@@ -437,12 +501,19 @@ export function restorePartyPp(party: CombatPokemon[]): CombatPokemon[] {
 }
 
 // --- Init combat ---
-export function initCombat(party: Pokemon[], enemy: Pokemon, items: Item[] = []): CombatState {
+export function initCombat(
+  party: Pokemon[],
+  enemy: Pokemon,
+  items: Item[] = [],
+  bossConfig?: { leaderId: string; remainingTeam: Pokemon[]; bossName: string; badges: string[] },
+): CombatState {
   let combatParty = party.map(toCombatPokemon);
   const combatEnemy = toCombatPokemon(enemy);
   const deck = buildDeck(combatParty[0]);
   let updatedItems = [...items];
-  const log: string[] = ['Battle start!'];
+  const log: string[] = bossConfig
+    ? [`Battle start! ${bossConfig.bossName} sends out ${combatEnemy.name}!`]
+    : ['Battle start!'];
 
   // Lum Berry: cure all status at start of combat, consume it
   if (hasItem(updatedItems, 'lum_berry') && combatParty[0].status) {
@@ -450,6 +521,10 @@ export function initCombat(party: Pokemon[], enemy: Pokemon, items: Item[] = [])
     updatedItems = updatedItems.filter((i) => i.id !== 'lum_berry');
     log.push(`Lum Berry cured ${combatParty[0].name}'s status!`);
   }
+
+  const initialIntent = bossConfig
+    ? pickBossMove(bossConfig.leaderId, combatEnemy, combatParty[0])
+    : pickEnemyMove(combatEnemy);
 
   const base: CombatState = {
     playerParty: combatParty,
@@ -460,12 +535,16 @@ export function initCombat(party: Pokemon[], enemy: Pokemon, items: Item[] = [])
     playerEnergy: 3,
     turn: 0,
     phase: 'player',
-    enemyIntent: pickEnemyMove(combatEnemy),
+    enemyIntent: initialIntent,
     log,
     items: updatedItems,
     combatUsedItems: [],
     movesPlayedThisTurn: 0,
     enemyFlinched: false,
+    enemyParty: bossConfig ? bossConfig.remainingTeam.map(toCombatPokemon) : [],
+    bossLeaderId: bossConfig?.leaderId ?? null,
+    bossName: bossConfig?.bossName ?? null,
+    badges: bossConfig?.badges ?? [],
   };
 
   return drawCards(base, 4);

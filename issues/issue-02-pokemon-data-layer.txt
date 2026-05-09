@@ -1,0 +1,27 @@
+ISSUE #2 — Pokemon Data Layer
+Type: AFK | Blocked by: Issue #1
+
+WHAT TO BUILD
+Build the data foundation for the entire game. Integrate PokeAPI (or local cached
+JSON) for Gen 1 Pokemon stats, sprites, and move data. Define all TypeScript models
+used across the game. Seed complete data for the 4 starters and their Gen 1 learnsets.
+
+Models to define:
+  - Pokemon   { id, name, sprite, hp, maxHp, types[], moves[], level, status }
+  - Move      { id, name, type, power, energyCost, pp, maxPp, effect? }
+  - Item      { id, name, sprite, description, trigger, effect }
+  - RunState  { trainer, party[], map, act, gold, items[] }
+  - Enemy     { pokemon, aiPattern }
+
+Starter learnsets (Gen 1 accurate):
+  - Bulbasaur  : Tackle, Growl, Vine Whip, Leech Seed, Poison Powder
+  - Charmander : Scratch, Growl, Ember, Smokescreen, Dragon Rage
+  - Squirtle   : Tackle, Tail Whip, Water Gun, Withdraw, Bubble
+  - Pikachu    : Thundershock, Growl, Tail Whip, Thunder Wave, Quick Attack
+
+ACCEPTANCE CRITERIA
+[ ] TypeScript interfaces defined for all core models
+[ ] PokeAPI utility (or local JSON) fetches/returns sprite URLs and base stats
+[ ] All 4 starters seeded with accurate Gen 1 movepools
+[ ] Move energy costs assigned (1-3) based on power level
+[ ] Data layer is tree-shakeable — no game logic in data files

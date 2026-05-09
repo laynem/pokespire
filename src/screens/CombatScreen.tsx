@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCombatStore, getRestoredParty } from '../store/combatStore';
 import { useRunStore } from '../store/runStore';
 import { usePokemonSprite } from '../hooks/usePokemon';
 import MoveCard from '../components/MoveCard';
 import { getEnergyCost } from '../utils/combatEngine';
 import { buildPokemon } from '../utils/pokemonFactory';
+import { GYM_LEADERS } from '../data/gymLeaders';
 import type { CombatPokemon } from '../utils/combatEngine';
 import type { Move } from '../types';
 
@@ -74,18 +75,35 @@ function EnergyPips({ current, max = 3 }: { current: number; max?: number }) {
 
 export default function CombatScreen() {
   const navigate = useNavigate();
-  const { party, items: runItems, currentNodeId, clearNode, updateParty, updateItems } = useRunStore();
+  const location = useLocation();
+  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
   const [lastLog, setLastLog] = useState<string[]>([]);
 
+  const bossLeaderId = (location.state as { bossLeaderId?: string } | null)?.bossLeaderId ?? null;
+  const isBoss = bossLeaderId !== null;
+
   // Init combat on mount if not already started
   useEffect(() => {
     if (combat.playerParty.length === 0 && party.length > 0) {
-      const wildId = [1, 4, 7, 25][Math.floor(Math.random() * 4)];
-      const wildLevel = 3 + Math.floor(Math.random() * 5);
-      const enemy = buildPokemon(wildId, wildLevel);
-      combat.startCombat(party, enemy, runItems);
+      if (isBoss && bossLeaderId) {
+        const leader = GYM_LEADERS[bossLeaderId];
+        const first = leader.team[0];
+        const leadPokemon = buildPokemon(first.pokemonId, first.level, first.moveIds);
+        const remainingTeam = leader.team.slice(1).map((m) => buildPokemon(m.pokemonId, m.level, m.moveIds));
+        combat.startCombat(party, leadPokemon, runItems, {
+          leaderId: bossLeaderId,
+          remainingTeam,
+          bossName: leader.name,
+          badges,
+        });
+      } else {
+        const wildId = [1, 4, 7, 25][Math.floor(Math.random() * 4)];
+        const wildLevel = 3 + Math.floor(Math.random() * 5);
+        const enemy = buildPokemon(wildId, wildLevel);
+        combat.startCombat(party, enemy, runItems);
+      }
     }
   }, []); // eslint-disable-line
 
@@ -108,8 +126,13 @@ export default function CombatScreen() {
         if (updateItems) updateItems(combat.items);
         let gold = 10 + Math.floor(Math.random() * 11);
         if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
+        const winBossLeaderId = combat.bossLeaderId;
         combat.clearCombat();
-        navigate('/reward', { state: { gold } });
+        if (winBossLeaderId) {
+          navigate('/boss-reward', { state: { bossLeaderId: winBossLeaderId, gold } });
+        } else {
+          navigate('/reward', { state: { gold } });
+        }
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -130,8 +153,25 @@ export default function CombatScreen() {
   const enemy = combat.enemy;
   const isPlayerTurn = combat.phase === 'player';
 
+  const bgClass = isBoss && bossLeaderId
+    ? GYM_LEADERS[bossLeaderId]?.bgClass ?? 'bg-gray-900'
+    : 'bg-gray-900';
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col max-w-lg mx-auto px-3 py-4 gap-3">
+    <div className={`min-h-screen ${bgClass} text-white flex flex-col max-w-lg mx-auto px-3 py-4 gap-3`}>
+
+      {/* Boss header */}
+      {isBoss && bossLeaderId && (
+        <div className="text-center">
+          <p className="text-yellow-400 font-bold text-lg">{GYM_LEADERS[bossLeaderId]?.name}</p>
+          <p className="text-gray-400 text-xs">{GYM_LEADERS[bossLeaderId]?.title}</p>
+          {combat.enemyParty.length > 0 && (
+            <p className="text-gray-500 text-xs mt-0.5">
+              Remaining: {combat.enemyParty.map((p) => p.name).join(', ')}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Enemy */}
       <PokemonPanel pokemon={enemy} isPlayer={false} />

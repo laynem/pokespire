@@ -1,0 +1,35 @@
+ISSUE #12 — Run Persistence, Game Over & Victory Screens
+Type: AFK | Blocked by: Issue #10, Issue #11
+
+WHAT TO BUILD
+Save full run state to localStorage so a refresh does not lose progress.
+Implement game over (all Pokemon fainted) and victory (Lt. Surge defeated) screens
+with run summaries and options to start a new run.
+
+Run persistence:
+  - Write full runStore to localStorage on every state change
+  - On app load, check localStorage for an in-progress run
+  - Home screen shows "Continue Run" or "New Run" if a save exists
+  - Clear localStorage on game over or victory
+
+Game Over screen (all Pokemon fainted):
+  - "All your Pokemon have fainted..." message with flavour
+  - Run summary:
+      Act reached | Pokemon caught | Gym badges earned
+      Total gold earned | Moves learned
+  - "Try Again" button — clears save, returns to character select
+
+Victory screen (Lt. Surge defeated):
+  - Celebration layout with Ash and full party sprites
+  - Same run summary fields
+  - "Play Again" button — clears save, returns to character select
+
+ACCEPTANCE CRITERIA
+[ ] runStore serialised to localStorage on every meaningful state change
+[ ] App loads in-progress run correctly from localStorage on refresh
+[ ] Home screen shows "Continue" option if a save exists
+[ ] Game over triggers when all party Pokemon HP reach 0
+[ ] Game over screen shows correct run summary stats
+[ ] Victory triggers after beating Lt. Surge
+[ ] Victory screen shows party sprites and full run summary
+[ ] "Try Again" / "Play Again" clears localStorage and fully resets state

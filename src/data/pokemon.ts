@@ -184,6 +184,34 @@ export const POKEMON_TEMPLATES: Record<number, PokemonTemplate> = {
   },
 
   // --- Act 2 ---
+  95: {
+    id: 95,
+    name: 'Onix',
+    types: ['Rock', 'Ground'] as PokemonType[],
+    baseStats: { hp: 35, attack: 45, defense: 160, spAtk: 30, spDef: 45, speed: 70 },
+    sprite: undefined,
+  },
+  100: {
+    id: 100,
+    name: 'Voltorb',
+    types: ['Electric'] as PokemonType[],
+    baseStats: { hp: 40, attack: 30, defense: 50, spAtk: 55, spDef: 55, speed: 100 },
+    sprite: undefined,
+  },
+  120: {
+    id: 120,
+    name: 'Staryu',
+    types: ['Water'] as PokemonType[],
+    baseStats: { hp: 30, attack: 45, defense: 55, spAtk: 70, spDef: 55, speed: 85 },
+    sprite: undefined,
+  },
+  121: {
+    id: 121,
+    name: 'Starmie',
+    types: ['Water', 'Psychic'] as PokemonType[],
+    baseStats: { hp: 60, attack: 75, defense: 85, spAtk: 100, spDef: 85, speed: 115 },
+    sprite: undefined,
+  },
   41: {
     id: 41,
     name: 'Zubat',

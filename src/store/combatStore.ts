@@ -12,10 +12,19 @@ import {
   buildDeck,
   drawCards,
   getEnergyCost,
+  pickBossMove,
+  pickEnemyMove,
 } from '../utils/combatEngine';
 
+interface BossConfig {
+  leaderId: string;
+  remainingTeam: Pokemon[];
+  bossName: string;
+  badges: string[];
+}
+
 interface CombatActions {
-  startCombat: (party: Pokemon[], enemy: Pokemon, items?: Item[]) => void;
+  startCombat: (party: Pokemon[], enemy: Pokemon, items?: Item[], bossConfig?: BossConfig) => void;
   playCard: (move: Move) => void;
   endTurn: () => void;
   switchPokemon: (index: number) => void;
@@ -39,13 +48,17 @@ const DEFAULT_STATE: CombatState = {
   combatUsedItems: [],
   movesPlayedThisTurn: 0,
   enemyFlinched: false,
+  enemyParty: [],
+  bossLeaderId: null,
+  bossName: null,
+  badges: [],
 };
 
 export const useCombatStore = create<CombatStore>((set, get) => ({
   ...DEFAULT_STATE,
 
-  startCombat: (party, enemy, items = []) => {
-    const state = initCombat(party, enemy, items);
+  startCombat: (party, enemy, items = [], bossConfig) => {
+    const state = initCombat(party, enemy, items, bossConfig);
     set(state);
   },
 
@@ -63,7 +76,25 @@ export const useCombatStore = create<CombatStore>((set, get) => ({
 
     // Check enemy faint
     if (next.enemy.currentHp <= 0) {
-      next = { ...next, phase: 'victory', log: [...next.log, `${next.enemy.name} fainted!`] };
+      const faintedName = next.enemy.name;
+      if (next.enemyParty.length > 0) {
+        // Boss: switch to next team member
+        const nextEnemy = next.enemyParty[0];
+        const remainingParty = next.enemyParty.slice(1);
+        const newIntent = next.bossLeaderId
+          ? pickBossMove(next.bossLeaderId, nextEnemy, next.playerParty[0])
+          : pickEnemyMove(nextEnemy);
+        next = {
+          ...next,
+          enemy: nextEnemy,
+          enemyParty: remainingParty,
+          enemyIntent: newIntent,
+          log: [...next.log, `${faintedName} fainted!`, `${next.bossName} sends out ${nextEnemy.name}!`],
+        };
+        set(next);
+        return;
+      }
+      next = { ...next, phase: 'victory', log: [...next.log, `${faintedName} fainted!`] };
       set(next);
       return;
     }

@@ -1,0 +1,27 @@
+ISSUE #3 — Character & Starter Selection Screen
+Type: AFK | Blocked by: Issue #2
+
+WHAT TO BUILD
+The opening screen of every run. Player sees Ash as the only selectable trainer
+(more trainers future-proofed but locked). Then picks one of 4 starting Pokemon:
+Bulbasaur, Charmander, Squirtle, or Pikachu. Selection initialises the run state.
+
+Screen flow:
+  1. Character select — Ash card with name, flavour text, passive ability
+  2. Starter select   — 4 Pokemon cards showing:
+       - Sprite (front)
+       - Name + Type badge
+       - Base HP
+       - Starting moves with energy cost and damage
+  3. Confirm button   — writes selection to runStore, navigates to /map
+
+Ash passive (Ironclad equivalent):
+  "Never Give Up" — when a Pokemon faints, the next one sent in draws +1 extra card
+
+ACCEPTANCE CRITERIA
+[ ] Character select screen renders Ash with locked placeholder for future trainers
+[ ] Starter select shows all 4 Pokemon with sprites, types, HP, and starting moves
+[ ] Clicking a starter highlights it and shows move detail panel
+[ ] Confirm writes { trainer: 'ash', party: [selectedPokemon] } to runStore
+[ ] Navigates to /map on confirm
+[ ] Responsive layout, works on desktop and tablet

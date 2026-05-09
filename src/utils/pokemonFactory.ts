@@ -21,13 +21,18 @@ function selectMoves(pokemonId: number, level: number): Move[] {
     .filter((m): m is Move => m !== undefined);
 }
 
-export function buildPokemon(pokemonId: number, level: number): Pokemon {
+export function buildPokemon(pokemonId: number, level: number, overrideMoveIds?: string[]): Pokemon {
   const template = POKEMON_TEMPLATES[pokemonId];
   if (!template) throw new Error(`Unknown Pokémon id: ${pokemonId}`);
 
   const maxHp = calcHp(template.baseStats.hp, level);
   const isStarter = pokemonId in STARTER_DECK_IDS && level === 5;
-  const moves = isStarter ? getStarterDeck(pokemonId) : selectMoves(pokemonId, level);
+  let moves: Move[];
+  if (overrideMoveIds) {
+    moves = overrideMoveIds.map((id) => MOVES[id]).filter((m): m is Move => m !== undefined);
+  } else {
+    moves = isStarter ? getStarterDeck(pokemonId) : selectMoves(pokemonId, level);
+  }
 
   return {
     id: template.id,

@@ -1,0 +1,30 @@
+ISSUE #10 — Pokemon Center & Poke Mart
+Type: AFK | Blocked by: Issue #8, Issue #9
+
+WHAT TO BUILD
+Two rest/shop node types on the map.
+
+--- POKEMON CENTER ---
+Options (player picks one):
+  A) Heal All    — restore all party Pokemon to full HP and cure all status
+  B) Move Tutor  — pick a Pokemon, forget one of its current moves,
+                   learn a new one from its Gen 1 learnset
+
+--- POKE MART ---
+Randomised shop inventory (4-6 items per visit):
+  - Passive items from the items pool (Issue #9)  — 75-150g each
+  - Move Scroll: buy a specific move for a Pokemon  — 50-100g
+  - Potion: restore 40 HP to one Pokemon            — 40g
+  - Full Restore: full HP + cure status on one Pokemon — 120g
+  - Poke Ball: improves the Pokemon offered on next Catch node — 60g
+
+ACCEPTANCE CRITERIA
+[ ] Pokemon Center offers Heal All and Move Tutor as distinct options
+[ ] Heal All restores all party Pokemon to maxHp and clears status
+[ ] Move Tutor lets player pick a Pokemon, then swap one move for a learnset move
+[ ] Poke Mart renders randomised shop inventory with gold costs
+[ ] Buying an item deducts gold and adds item to runStore
+[ ] Buying a Move Scroll adds the move to the chosen Pokemon's deck
+[ ] Gold balance shown and updates in real time
+[ ] Purchase buttons disabled when insufficient gold
+[ ] Continue button returns to map

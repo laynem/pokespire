@@ -1,0 +1,31 @@
+ISSUE #8 — Pokemon Catch Node
+Type: AFK | Blocked by: Issue #7
+
+WHAT TO BUILD
+A dedicated map node where Ash encounters a wild Pokemon and chooses to add it to
+his party or pass. No combat, no fail mechanic — pure information + choice.
+
+Encounter screen layout:
+  - Pokemon sprite (front)
+  - Name, Type badge(s), Level
+  - Base HP
+  - Move list: each move with name, type, energy cost, and damage value
+  - "Add to Party" button (disabled with "Party Full" if already 6 Pokemon)
+  - "Release" button to skip without adding
+
+Rules:
+  - Pokemon offered is randomly selected from an act-appropriate pool:
+      Act 1: Pidgey, Rattata, Caterpie, Weedle, Jigglypuff, Clefairy, Oddish, Bellsprout
+      Act 2: Geodude, Zubat, Paras, Psyduck, Slowpoke, Magnemite, Gastly, Machop
+      Act 3: Growlithe, Vulpix, Electabuzz, Magmar, Scyther, Pinsir, Eevee, Lapras
+  - Added Pokemon joins party with its Gen 1 starting moveset (4 moves)
+  - Party capped at 6 — button disabled if full, shows warning message
+  - No combat occurs on this node type
+
+ACCEPTANCE CRITERIA
+[ ] Catch node renders Pokemon with sprite, types, HP, and full move list with damage
+[ ] "Add to Party" adds Pokemon to runStore party array
+[ ] Button disabled with "Party Full" message when party has 6 Pokemon
+[ ] "Release" skips and returns player to map
+[ ] Pokemon pool is act-appropriate and randomly selected on node entry
+[ ] New Pokemon initialised with correct Gen 1 starting moveset

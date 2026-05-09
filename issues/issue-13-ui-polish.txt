@@ -1,0 +1,39 @@
+ISSUE #13 — UI Polish & Animations
+Type: HITL | Blocked by: Issue #12
+
+NOTE: Requires design review before implementation begins.
+
+WHAT TO BUILD
+A visual polish pass across the entire game. Focus on high-impact moments that
+make the game feel alive and reward the player emotionally.
+
+Combat:
+  - Pokemon sprites shake/flash on hit
+  - Damage numbers float up from the hit Pokemon
+  - "Super effective!" / "Not very effective..." text flash
+  - HP bar animates smoothly; colour shifts green > yellow > red as HP drops
+  - Card play animation (card slides from hand toward enemy)
+  - Status effect icons appear on Pokemon portrait when inflicted
+
+Map:
+  - Travelling dot animates along path lines when moving between nodes
+  - Current position has a pulsing indicator
+  - Node icons have distinct art per node type
+  - Act transition animation (fade or wipe between acts)
+
+Catch Node:
+  - Poke Ball throw animation before the wild Pokemon is revealed
+
+General:
+  - Fade transitions between routes/screens
+  - Card hover lifts with drop shadow
+  - Gold counter increments with animation when gold is gained
+  - Faint animation: Pokemon sprite fades/falls before switch-in
+
+ACCEPTANCE CRITERIA (defined at design review)
+[ ] All combat animations implemented and run at 60fps without jank
+[ ] Map travel animation plays correctly on node navigation
+[ ] HP bar colour transitions smoothly across thresholds
+[ ] Poke Ball reveal animation plays on catch node entry
+[ ] Screen transitions are smooth and non-disruptive
+[ ] All animations respect prefers-reduced-motion media query

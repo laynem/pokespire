@@ -1,0 +1,32 @@
+ISSUE #9 — Items System (Relics)
+Type: AFK | Blocked by: Issue #5
+
+WHAT TO BUILD
+Passive items Ash carries throughout the run, granting persistent bonuses.
+Equivalent to Slay the Spire relics. Items trigger on game events via a hook system.
+
+Event hooks items attach to:
+  - onCombatStart, onTurnStart, onTurnEnd, onCombatEnd
+  - onPokemonFaint, onMovePlayed, onDamageTaken, onDamageDealt
+  - onCatch, onShop, onRest
+
+Starter item set (10 items):
+
+  Leftovers    — Active Pokemon restores 5 HP at end of each turn
+  Lum Berry    — Cures all status at start of combat (consumed once per run)
+  Choice Band  — First move played each turn deals +25% damage
+  Oran Berry   — When a Pokemon drops below 50% HP, restore 20 HP (once per combat)
+  Amulet Coin  — Earn +50% gold from all battles
+  Exp. Share   — All party Pokemon (not just active) benefit from move drafts
+  Kings Rock   — 10% chance any damaging move causes flinch (enemy skips next turn)
+  Shell Bell   — Heal 5 HP whenever a move deals 40+ damage
+  Quick Claw   — 20% chance active Pokemon moves first regardless of speed
+  Poke Flute   — Instantly cure Sleep status when applied to your Pokemon
+
+ACCEPTANCE CRITERIA
+[ ] Item data model defined with trigger type and effect function
+[ ] All 10 items implemented and triggering correctly on their events
+[ ] Item tray shown in combat HUD (icons with tooltip on hover)
+[ ] Item tray shown on map screen
+[ ] Lum Berry and Oran Berry correctly marked as consumed after use
+[ ] Items persist in runStore for the full run

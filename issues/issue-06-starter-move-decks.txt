@@ -1,0 +1,47 @@
+ISSUE #6 — Starter Move Decks
+Type: AFK | Blocked by: Issue #5
+
+WHAT TO BUILD
+Wire all real Gen 1 moves for the 4 starters into the combat engine with accurate
+power values, energy costs, and effects. Each starter begins with 4 moves as their deck.
+
+Move card design (each card shows):
+  - Move name
+  - Type badge (colour coded)
+  - Energy cost (1-3)
+  - Damage / effect description
+  - PP counter (e.g. 3/3)
+
+Starter starting decks:
+
+Bulbasaur:
+  - Tackle      | Normal | 1 energy | 40 power
+  - Growl       | Normal | 1 energy | Lower enemy Attack 1 stage
+  - Vine Whip   | Grass  | 2 energy | 45 power
+  - Leech Seed  | Grass  | 2 energy | Drain 10 HP/turn from enemy
+
+Charmander:
+  - Scratch     | Normal | 1 energy | 40 power
+  - Growl       | Normal | 1 energy | Lower enemy Attack 1 stage
+  - Ember       | Fire   | 2 energy | 40 power, 10% chance Burn
+  - Smokescreen | Normal | 1 energy | 30% miss chance applied to enemy next turn
+
+Squirtle:
+  - Tackle      | Normal | 1 energy | 40 power
+  - Tail Whip   | Normal | 1 energy | Lower enemy Defense 1 stage
+  - Water Gun   | Water  | 2 energy | 40 power
+  - Withdraw    | Water  | 1 energy | Gain 8 Block this turn
+
+Pikachu:
+  - Thundershock | Electric | 2 energy | 40 power, 10% chance Paralysis
+  - Growl        | Normal   | 1 energy | Lower enemy Attack 1 stage
+  - Tail Whip    | Normal   | 1 energy | Lower enemy Defense 1 stage
+  - Quick Attack | Normal   | 1 energy | 40 power, always goes first this turn
+
+ACCEPTANCE CRITERIA
+[ ] All 4 starter decks initialised correctly in runStore on game start
+[ ] Move cards render with name, type, energy cost, power/effect, and PP counter
+[ ] All move effects implemented: damage, stat changes, status, block, priority
+[ ] Type badge colours match official Pokemon type colours
+[ ] Quick Attack resolves before enemy action regardless of speed
+[ ] Stat stage modifiers affect damage calculation correctly

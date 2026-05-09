@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { generateMap, getAvailableNodes } from '../utils/mapGenerator';
 import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
+import { ACT_BOSS } from '../data/gymLeaders';
 import type { MapNode, NodeType } from '../types';
 
 const ACT_THEMES = {
@@ -133,7 +134,13 @@ export default function MapScreen() {
 
   function handleNodeClick(node: MapNode) {
     setCurrentNode(node.id);
-    navigate(NODE_ROUTE[node.type]);
+    const route = NODE_ROUTE[node.type];
+    if (node.type === 'boss') {
+      const bossLeaderId = ACT_BOSS[act];
+      navigate(route, { state: { bossLeaderId } });
+    } else {
+      navigate(route);
+    }
   }
 
   return (

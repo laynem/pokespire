@@ -1,0 +1,31 @@
+ISSUE #1 — Project Scaffold
+Type: AFK | Blocked by: Nothing — can start immediately
+
+WHAT TO BUILD
+Bootstrap the PokeSpire project: a browser-based Pokemon-themed Slay the Spire clone.
+Set up the full development stack, folder structure, routing skeleton, and global
+game state store so all future slices have a stable foundation.
+
+Tech Stack:
+  - Framework : Vite + React + TypeScript
+  - Styling   : Tailwind CSS
+  - State     : Zustand (global run state)
+  - Routing   : React Router v6
+
+Folder Structure:
+  src/
+    components/     # Reusable UI components
+    screens/        # Full-page screens (Map, Combat, CharacterSelect, etc.)
+    store/          # Zustand slices (runStore, combatStore)
+    data/           # Static JSON for Pokemon, moves, items, bosses
+    hooks/          # Custom React hooks
+    utils/          # Type effectiveness, damage calc, RNG helpers
+    types/          # Shared TypeScript interfaces
+
+ACCEPTANCE CRITERIA
+[ ] Vite + React + TypeScript project initialised and runs locally
+[ ] Tailwind CSS configured and working
+[ ] Zustand store scaffolded with empty runStore (pokemon[], currentMap, gold, act)
+[ ] React Router set up with placeholder routes: /, /character-select, /map, /combat, /game-over
+[ ] ESLint + Prettier configured
+[ ] README with setup instructions

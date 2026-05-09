@@ -8,6 +8,8 @@ import GameOverScreen from './screens/GameOverScreen';
 import VictoryScreen from './screens/VictoryScreen';
 import RewardScreen from './screens/RewardScreen';
 import CatchScreen from './screens/CatchScreen';
+import PokemonCenterScreen from './screens/PokemonCenterScreen';
+import PokeMartScreen from './screens/PokeMartScreen';
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/game-over" element={<GameOverScreen />} />
         <Route path="/reward" element={<RewardScreen />} />
         <Route path="/catch" element={<CatchScreen />} />
+        <Route path="/center" element={<PokemonCenterScreen />} />
+        <Route path="/mart" element={<PokeMartScreen />} />
         <Route path="/victory" element={<VictoryScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

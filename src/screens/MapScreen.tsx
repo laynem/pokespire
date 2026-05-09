@@ -16,8 +16,8 @@ const NODE_ROUTE: Record<NodeType, string> = {
   elite:    '/combat',
   boss:     '/combat',
   treasure: '/catch',
-  rest:     '/map',      // placeholder until Issue #10
-  shop:     '/map',      // placeholder until Issue #10
+  rest:     '/center',
+  shop:     '/mart',
   event:    '/combat',
 };
 
@@ -133,10 +133,6 @@ export default function MapScreen() {
 
   function handleNodeClick(node: MapNode) {
     setCurrentNode(node.id);
-    if (node.type === 'rest' || node.type === 'shop') {
-      clearNode(node.id);   // mark cleared so map can progress
-      return;               // stay on map until Issue #10
-    }
     navigate(NODE_ROUTE[node.type]);
   }
 

@@ -61,8 +61,6 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
   const template = POKEMON_TEMPLATES[pokemonId];
   if (!template) return null;
 
-  const startingMoves = getStarterDeck(pokemonId);
-
   return (
     <button
       onClick={onSelect}
@@ -74,19 +72,11 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
       `}
     >
       <StarterSprite pokemonId={pokemonId} />
-      <p className="font-bold text-lg">{template.name}</p>
+      <p className="font-bold text-base">{template.name}</p>
       <div className="flex gap-1 flex-wrap justify-center">
         {template.types.map((t) => <TypeBadge key={t} type={t} />)}
       </div>
       <p className="text-sm text-gray-400">HP: <span className="text-white">{template.baseStats.hp}</span></p>
-      <div className="w-full border-t border-gray-600 pt-2 mt-1 flex flex-col gap-1">
-        {startingMoves.map((move) => (
-          <div key={move.id} className="flex justify-between text-xs text-gray-300">
-            <span>{move.name}</span>
-            <span className="text-gray-500">{move.power > 0 ? `${move.power} pw` : '—'}</span>
-          </div>
-        ))}
-      </div>
     </button>
   );
 }
@@ -113,8 +103,7 @@ export default function StarterSelectScreen() {
     <div className="absolute inset-0 bg-gray-900 text-white flex flex-col items-center justify-center px-4 py-6 gap-6 overflow-y-auto">
       <h2 className="text-3xl font-bold text-yellow-400">Choose Your Starter</h2>
 
-      {/* 4 starter cards — 2×2 on mobile, 4-wide on desktop */}
-      <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
+      <div className="grid grid-cols-4 gap-4 w-full max-w-2xl">
         {starters.map(({ id }) => (
           <StarterCard
             key={id}

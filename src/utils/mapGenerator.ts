@@ -11,13 +11,12 @@ function makeRng(seed: number) {
   };
 }
 
+// 65% wild battle, 10% rest, 10% shop, 15% event
 const NODE_WEIGHTS: Array<[NodeType, number]> = [
-  ['combat',   35],
-  ['elite',    25],  // trainer battle
-  ['treasure', 15],  // catch node
-  ['rest',     10],  // pokemon center
-  ['shop',     10],  // poke mart
-  ['event',     5],  // special event
+  ['combat', 65],
+  ['rest',   10],
+  ['shop',   10],
+  ['event',  15],
 ];
 
 function weightedPick(rng: () => number): NodeType {
@@ -30,30 +29,33 @@ function weightedPick(rng: () => number): NodeType {
   return 'combat';
 }
 
-const ROWS_PER_ACT = 7;       // rows of nodes (excl. boss)
-const COLS = 3;               // branches per row
+// Variable cols per row — weighted toward 2-3 for organic density
+function pickColCount(rng: () => number): number {
+  const r = rng();
+  if (r < 0.10) return 1;
+  if (r < 0.38) return 2;
+  if (r < 0.80) return 3;
+  return 4;
+}
+
+const ROWS_PER_ACT = 8; // 8 regular rows + 1 boss = ~18-20 encounters
 
 export function generateMap(seed: number, act: number): MapNode[] {
   const rng = makeRng(seed ^ (act * 0xdeadbeef));
   const nodes: MapNode[] = [];
-
-  // Build grid: ROWS_PER_ACT regular rows + 1 boss row
-  const totalRows = ROWS_PER_ACT + 1;
   const grid: string[][] = [];
 
-  for (let row = 0; row < totalRows; row++) {
+  for (let row = 0; row < ROWS_PER_ACT + 1; row++) {
     const rowIds: string[] = [];
-    const isBossRow = row === totalRows - 1;
-    const colCount = isBossRow ? 1 : COLS;
+    const isBossRow = row === ROWS_PER_ACT;
+    const colCount = isBossRow ? 1 : pickColCount(rng);
 
     for (let col = 0; col < colCount; col++) {
       const id = `a${act}r${row}c${col}`;
       rowIds.push(id);
-      const type: NodeType = isBossRow ? 'boss' : weightedPick(rng);
-
       nodes.push({
         id,
-        type,
+        type: isBossRow ? 'boss' : weightedPick(rng),
         act,
         row,
         col,
@@ -64,43 +66,54 @@ export function generateMap(seed: number, act: number): MapNode[] {
     grid.push(rowIds);
   }
 
-  // Wire connections: each node in row R connects to 1-2 nodes in row R+1
-  for (let row = 0; row < totalRows - 1; row++) {
+  // Wire connections: more organic routing with crossing paths
+  for (let row = 0; row < ROWS_PER_ACT; row++) {
     const fromIds = grid[row];
     const toIds = grid[row + 1];
+    const incoming = new Set<string>();
 
-    // Each "from" node picks 1-2 targets
     for (const fromId of fromIds) {
-      const node = nodes.find((n) => n.id === fromId)!;
-      // Primary: map col proportionally
-      const fromIndex = fromIds.indexOf(fromId);
-      const primaryCol = Math.round((fromIndex / Math.max(fromIds.length - 1, 1)) * (toIds.length - 1));
-      const primary = toIds[primaryCol];
-      if (!node.connections.includes(primary)) node.connections.push(primary);
+      const fromNode = nodes.find((n) => n.id === fromId)!;
+      const fromIdx = fromIds.indexOf(fromId);
+      const fromFrac = fromIds.length > 1 ? fromIdx / (fromIds.length - 1) : 0.5;
 
-      // Secondary: 40% chance to connect to an adjacent col
-      if (toIds.length > 1 && rng() < 0.4) {
-        const altCol = primaryCol === 0 ? 1 : primaryCol === toIds.length - 1 ? toIds.length - 2 : (rng() < 0.5 ? primaryCol - 1 : primaryCol + 1);
-        const alt = toIds[altCol];
-        if (!node.connections.includes(alt)) node.connections.push(alt);
+      // Primary: proportional with large random shift → creates natural crossings
+      const primaryShift = (rng() - 0.5) * 0.8;
+      const primaryFrac = Math.max(0, Math.min(1, fromFrac + primaryShift));
+      const primaryIdx = Math.round(primaryFrac * (toIds.length - 1));
+      const primaryId = toIds[primaryIdx];
+      if (!fromNode.connections.includes(primaryId)) {
+        fromNode.connections.push(primaryId);
+        incoming.add(primaryId);
+      }
+
+      // Secondary: 50% chance — picks a different col to create branching / crossing
+      if (rng() < 0.5 && toIds.length > 1) {
+        const secondaryFrac = rng() < 0.6
+          ? Math.max(0, Math.min(1, fromFrac + (rng() - 0.5) * 0.8))
+          : rng(); // 40% fully random for dramatic crossings
+        const secondaryIdx = Math.round(secondaryFrac * (toIds.length - 1));
+        const secondaryId = toIds[secondaryIdx];
+        if (!fromNode.connections.includes(secondaryId)) {
+          fromNode.connections.push(secondaryId);
+          incoming.add(secondaryId);
+        }
       }
     }
 
-    // Ensure every "to" node has at least one incoming connection
+    // Guarantee every next-row node is reachable
     for (const toId of toIds) {
-      const hasIncoming = nodes.some((n) => n.connections.includes(toId));
-      if (!hasIncoming) {
-        const randomFrom = fromIds[Math.floor(rng() * fromIds.length)];
-        const fromNode = nodes.find((n) => n.id === randomFrom)!;
+      if (!incoming.has(toId)) {
+        const randomFromId = fromIds[Math.floor(rng() * fromIds.length)];
+        const fromNode = nodes.find((n) => n.id === randomFromId)!;
         if (!fromNode.connections.includes(toId)) fromNode.connections.push(toId);
       }
     }
   }
 
-  // Prepend a home node at row -1 (pre-cleared start marker)
-  const homeId = `a${act}r-1c0`;
+  // Home node at row -1: pre-cleared start marker, connects to all row-0 nodes
   nodes.unshift({
-    id: homeId,
+    id: `a${act}r-1c0`,
     type: 'home',
     act,
     row: -1,
@@ -112,10 +125,8 @@ export function generateMap(seed: number, act: number): MapNode[] {
   return nodes;
 }
 
-// Returns IDs of nodes the player can currently click
 export function getAvailableNodes(nodes: MapNode[], currentNodeId: string | null): string[] {
   if (!currentNodeId) {
-    // Start: find the lowest row that still has uncleared nodes
     const rows = Array.from(new Set(nodes.map((n) => n.row))).sort((a, b) => a - b);
     for (const row of rows) {
       const uncleared = nodes.filter((n) => n.row === row && !n.cleared);

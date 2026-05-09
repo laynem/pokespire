@@ -32,7 +32,7 @@ export default function MapNodeIcon({ type, state, isCurrent, onClick }: Props) 
       : state === 'cleared'
       ? 'border-gray-600 bg-gray-800/60 opacity-40 cursor-default grayscale'
       : state === 'locked'
-      ? 'border-gray-800 bg-gray-950/80 opacity-15 cursor-default'
+      ? 'border-gray-600 bg-gray-900/70 opacity-55 cursor-default'
       : `${meta.color} ${meta.glow} cursor-pointer hover:scale-110 hover:brightness-125`,
   ].join(' ');
 

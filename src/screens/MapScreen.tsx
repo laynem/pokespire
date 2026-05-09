@@ -81,8 +81,25 @@ const NODE_ROUTE: Record<NodeType, string> = {
   event:    '/combat',
 };
 
-const COL_X = [0.2, 0.5, 0.8];
-const ROW_HEIGHT = 120;
+const ROW_HEIGHT = 110;
+
+// Base column fractions for 1-4 columns
+function getColFractions(numCols: number): number[] {
+  if (numCols === 1) return [0.5];
+  if (numCols === 2) return [0.2, 0.8];
+  if (numCols === 3) return [0.15, 0.5, 0.85];
+  return [0.12, 0.37, 0.63, 0.88];
+}
+
+// Deterministic per-node jitter derived from id hash
+function nodeJitter(id: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = (Math.imul(h, 0x01000193)) >>> 0;
+  }
+  return ((h & 0xffff) / 0x10000 - 0.5) * 0.09; // ±4.5% of container width
+}
 
 interface NodePos { id: string; x: number; y: number }
 
@@ -95,8 +112,10 @@ function useNodePositions(nodes: MapNode[], containerWidth: number): Map<string,
       const rowIndex = rows.indexOf(node.row);
       const y = (totalRows - 1 - rowIndex) * ROW_HEIGHT + 56;
       const colsInRow = nodes.filter((n) => n.row === node.row).length;
-      const colPositions = colsInRow === 1 ? [0.5] : COL_X.slice(0, colsInRow);
-      const x = (colPositions[node.col] ?? 0.5) * containerWidth;
+      const fracs = getColFractions(colsInRow);
+      const baseFrac = fracs[node.col] ?? 0.5;
+      const jitter = node.type === 'home' ? 0 : nodeJitter(node.id);
+      const x = Math.max(0.06, Math.min(0.94, baseFrac + jitter)) * containerWidth;
       map.set(node.id, { id: node.id, x, y });
     });
     return map;

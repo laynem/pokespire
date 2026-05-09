@@ -13,9 +13,12 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   ],
 
   // -------------------------------------------------------------------------
-  // Weedle (13) — no available moves in moves.ts
+  // Weedle (13)
   // -------------------------------------------------------------------------
-  13: [],
+  13: [
+    { level: 1,  moveId: "poison_sting" },
+    { level: 1,  moveId: "tackle" },
+  ],
 
   // -------------------------------------------------------------------------
   // Pidgey (16)
@@ -39,6 +42,7 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   // Clefairy (35)
   // -------------------------------------------------------------------------
   35: [
+    { level: 1,  moveId: "tackle" },
     { level: 1,  moveId: "growl" },
     { level: 48, moveId: "light_screen" },
   ],
@@ -58,6 +62,8 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   // Jigglypuff (39)
   // -------------------------------------------------------------------------
   39: [
+    { level: 1,  moveId: "tackle" },
+    { level: 1,  moveId: "growl" },
     { level: 44, moveId: "double_edge" },
   ],
 
@@ -65,6 +71,7 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   // Zubat (41)
   // -------------------------------------------------------------------------
   41: [
+    { level: 1,  moveId: "tackle" },
     { level: 15, moveId: "bite" },
   ],
 
@@ -72,6 +79,7 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   // Oddish (43)
   // -------------------------------------------------------------------------
   43: [
+    { level: 1,  moveId: "vine_whip" },
     { level: 15, moveId: "poison_powder" },
     { level: 19, moveId: "sleep_powder" },
     { level: 39, moveId: "solar_beam" },
@@ -112,6 +120,7 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   // Machop (66)
   // -------------------------------------------------------------------------
   66: [
+    { level: 1,  moveId: "karate_chop" },
     { level: 1,  moveId: "leer" },
   ],
 
@@ -154,9 +163,12 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   ],
 
   // -------------------------------------------------------------------------
-  // Gastly (92) — no available moves in moves.ts
+  // Gastly (92)
   // -------------------------------------------------------------------------
-  92: [],
+  92: [
+    { level: 1,  moveId: "lick" },
+    { level: 1,  moveId: "growl" },
+  ],
 
   // -------------------------------------------------------------------------
   // Onix (95)
@@ -233,9 +245,12 @@ export const LEARNSETS: Record<number, LearnsetEntry[]> = {
   ],
 
   // -------------------------------------------------------------------------
-  // Pinsir (127) — no available moves in moves.ts
+  // Pinsir (127)
   // -------------------------------------------------------------------------
-  127: [],
+  127: [
+    { level: 1,  moveId: "vice_grip" },
+    { level: 1,  moveId: "leer" },
+  ],
 
   // -------------------------------------------------------------------------
   // Lapras (131)

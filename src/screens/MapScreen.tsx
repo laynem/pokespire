@@ -8,17 +8,55 @@ import type { MapNode, NodeType, PokemonType } from '../types';
 import logo from '../assets/logo.png';
 
 const ACT_THEMES = {
-  1: { bg: 'bg-green-800',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
+  1: { bg: 'bg-green-900',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
   2: { bg: 'bg-slate-900',  title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
   3: { bg: 'bg-zinc-900',   title: 'Viridian City', subtitle: 'Final approach to the Gym' },
 };
 
-// Per-act CSS texture overlaid on the map canvas
-const ACT_TEXTURE: Record<number, string> = {
-  1: 'repeating-linear-gradient(0deg, rgba(0,60,0,0.25) 0px, rgba(0,60,0,0.25) 2px, transparent 2px, transparent 20px)',
-  2: 'repeating-linear-gradient(60deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 18px)',
-  3: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 22px)',
-};
+// ── Pixel grass texture ──────────────────────────────────────────
+
+// 8 hand-picked greens matching the reference image
+const GRASS_PALETTE = [
+  '#4ea800', '#5aba00', '#68cc00', '#78d810',
+  '#60b800', '#72ca08', '#4a9c00', '#82d420',
+];
+
+function seededRand(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = Math.imul(s ^ (s >>> 15), 0x2c1b3c6d);
+    s ^= s + Math.imul(s ^ (s >>> 7), 0xb5402911);
+    return ((s ^ (s >>> 14)) >>> 0) / 0xffffffff;
+  };
+}
+
+function GrassTexture({ seed }: { seed: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const rand = seededRand(seed);
+    for (let y = 0; y < 64; y++) {
+      for (let x = 0; x < 64; x++) {
+        ctx.fillStyle = GRASS_PALETTE[Math.floor(rand() * GRASS_PALETTE.length)];
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  }, [seed]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={64}
+      height={64}
+      className="absolute inset-0 w-full h-full pointer-events-none opacity-70"
+      style={{ imageRendering: 'pixelated', objectFit: 'cover' }}
+    />
+  );
+}
 
 const TYPE_COLORS: Record<string, string> = {
   Normal: 'bg-gray-500', Fire: 'bg-orange-600', Water: 'bg-blue-600',
@@ -238,11 +276,8 @@ export default function MapScreen() {
 
       {/* ── Map Canvas ───────────────────────────────────────────── */}
       <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
-        {/* Act-themed texture */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: ACT_TEXTURE[act] ?? ACT_TEXTURE[1] }}
-        />
+        {/* Pixel grass texture (Act 1 only; other acts use plain bg) */}
+        {act === 1 && <GrassTexture seed={seed} />}
 
         {/* Inner canvas sized to fit all nodes */}
         <div ref={containerRef} className="relative" style={{ height: Math.max(svgHeight, 600) }}>

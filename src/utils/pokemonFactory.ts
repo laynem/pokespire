@@ -2,6 +2,7 @@ import type { Pokemon, Move } from '../types';
 import { POKEMON_TEMPLATES } from '../data/pokemon';
 import { MOVES } from '../data/moves';
 import { getMovesAtLevel } from '../data/learnsets';
+import { getStarterDeck, STARTER_DECK_IDS } from '../data/starterDecks';
 
 function calcStat(base: number, level: number): number {
   return Math.floor((2 * base * level) / 100) + 5;
@@ -25,7 +26,8 @@ export function buildPokemon(pokemonId: number, level: number): Pokemon {
   if (!template) throw new Error(`Unknown Pokémon id: ${pokemonId}`);
 
   const maxHp = calcHp(template.baseStats.hp, level);
-  const moves = selectMoves(pokemonId, level);
+  const isStarter = pokemonId in STARTER_DECK_IDS && level === 5;
+  const moves = isStarter ? getStarterDeck(pokemonId) : selectMoves(pokemonId, level);
 
   return {
     id: template.id,

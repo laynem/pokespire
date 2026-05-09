@@ -10,6 +10,8 @@ export function getEnergyCost(move: Move): number {
 
 export interface CombatPokemon extends Pokemon {
   currentPp: Record<string, number>; // moveId → remaining PP this combat
+  statStages: { attack: number; defense: number }; // -2 to +2
+  block: number; // temporary HP absorption, resets each turn
 }
 
 export interface CombatState {
@@ -44,10 +46,16 @@ export function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function stageMultiplier(stage: number): number {
+  const clamp = Math.max(-2, Math.min(2, stage));
+  const table: Record<number, number> = { '-2': 0.5, '-1': 0.67, 0: 1, 1: 1.5, 2: 2 };
+  return table[clamp] ?? 1;
+}
+
 export function toCombatPokemon(p: Pokemon): CombatPokemon {
   const currentPp: Record<string, number> = {};
   for (const m of p.moves) currentPp[m.id] = 3; // 3 PP per move per combat
-  return { ...p, currentPp };
+  return { ...p, currentPp, statStages: { attack: 0, defense: 0 }, block: 0 };
 }
 
 export function drawCards(state: CombatState, count: number): CombatState {
@@ -75,8 +83,10 @@ export function calcDamage(
   multiplier: number,
 ): number {
   if (move.power === 0) return 0;
-  const atk = move.category === 'special' ? attacker.baseStats.spAtk : attacker.baseStats.attack;
-  const def = move.category === 'special' ? defender.baseStats.spDef : defender.baseStats.defense;
+  const atkBase = move.category === 'special' ? attacker.baseStats.spAtk : attacker.baseStats.attack;
+  const defBase = move.category === 'special' ? defender.baseStats.spDef : defender.baseStats.defense;
+  const atk = atkBase * stageMultiplier(attacker.statStages.attack);
+  const def = defBase * stageMultiplier(defender.statStages.defense);
   const roll = 0.85 + Math.random() * 0.15;
   const raw = Math.floor((move.power * atk) / Math.max(def, 1) * roll * multiplier);
   return Math.max(1, raw);
@@ -153,7 +163,35 @@ export function applyMoveEffect(
     return { attacker, defender: { ...defender, status } };
   }
 
-  // Stat changes are visual only for now — no numeric modifier system yet
+  if (move.effect === 'lower_attack') {
+    const newStage = Math.max(-2, defender.statStages.attack - 1);
+    log.push(`${defender.name}'s Attack fell!`);
+    return { attacker, defender: { ...defender, statStages: { ...defender.statStages, attack: newStage } } };
+  }
+
+  if (move.effect === 'lower_defense') {
+    const newStage = Math.max(-2, defender.statStages.defense - 1);
+    log.push(`${defender.name}'s Defense fell!`);
+    return { attacker, defender: { ...defender, statStages: { ...defender.statStages, defense: newStage } } };
+  }
+
+  if (move.effect === 'raise_defense') {
+    const newStage = Math.min(2, attacker.statStages.defense + 1);
+    log.push(`${attacker.name}'s Defense rose!`);
+    return { attacker: { ...attacker, statStages: { ...attacker.statStages, defense: newStage } }, defender };
+  }
+
+  if (move.effect === 'block') {
+    const blockGain = 8;
+    log.push(`${attacker.name} braced itself! (+${blockGain} Block)`);
+    return { attacker: { ...attacker, block: attacker.block + blockGain }, defender };
+  }
+
+  if (move.effect === 'priority') {
+    log.push(`${attacker.name} struck first!`);
+    return { attacker, defender };
+  }
+
   return { attacker, defender };
 }
 
@@ -186,7 +224,13 @@ export function playMove(
 
   // Damage
   if (move.power > 0 && multiplier > 0) {
-    const dmg = calcDamage(move, player, enemy, multiplier);
+    let dmg = calcDamage(move, player, enemy, multiplier);
+    if (defender.block > 0) {
+      const absorbed = Math.min(defender.block, dmg);
+      dmg -= absorbed;
+      defender = { ...defender, block: defender.block - absorbed };
+      if (absorbed > 0) log.push(`${defender.name} blocked ${absorbed} damage!`);
+    }
     defender = { ...defender, currentHp: Math.max(0, defender.currentHp - dmg) };
     log.push(`${player.name} used ${move.name}! (${dmg} dmg)`);
   } else if (move.power === 0) {
@@ -238,7 +282,13 @@ export function executeEnemyTurn(state: CombatState): CombatState {
     else if (multiplier > 0 && multiplier <= 0.5) log.push('Not very effective...');
 
     if (move.power > 0 && multiplier > 0) {
-      const dmg = calcDamage(move, enemy, player, multiplier);
+      let dmg = calcDamage(move, enemy, player, multiplier);
+      if (player.block > 0) {
+        const absorbed = Math.min(player.block, dmg);
+        dmg -= absorbed;
+        player = { ...player, block: player.block - absorbed };
+        if (absorbed > 0) log.push(`${player.name} blocked ${absorbed} damage!`);
+      }
       player = { ...player, currentHp: Math.max(0, player.currentHp - dmg) };
       log.push(`${enemy.name} used ${move.name}! (${dmg} dmg)`);
     } else {
@@ -264,13 +314,14 @@ export function startPlayerTurn(state: CombatState): CombatState {
   const log = [...state.log, `--- Turn ${state.turn + 1} ---`];
   const player = state.playerParty[0];
 
-  // Tick player status
+  // Tick player status + reset block
   const playerTick = tickStatus(player, log);
-  const newParty = [playerTick.pokemon, ...state.playerParty.slice(1)];
+  const resetPlayer = { ...playerTick.pokemon, block: 0 };
+  const newPartyReset = [resetPlayer, ...state.playerParty.slice(1)];
 
   let next: CombatState = {
     ...state,
-    playerParty: newParty,
+    playerParty: newPartyReset,
     playerEnergy: 3,
     turn: state.turn + 1,
     phase: playerTick.skip ? 'enemy' : 'player',

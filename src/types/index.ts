@@ -15,6 +15,7 @@ export interface Move {
   description: string;
   effect?: string;
   effectChance?: number;
+  priority?: boolean;
 }
 
 export interface Pokemon {

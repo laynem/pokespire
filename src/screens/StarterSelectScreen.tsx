@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePokemonSprite } from '../hooks/usePokemon';
 import { buildPokemon, getStarterOptions } from '../utils/pokemonFactory';
 import { POKEMON_TEMPLATES } from '../data/pokemon';
-import { MOVES } from '../data/moves';
-import { getMovesAtLevel } from '../data/learnsets';
+import { getStarterDeck } from '../data/starterDecks';
 import { useRunStore } from '../store/runStore';
 import type { PokemonType } from '../types';
 
@@ -62,8 +61,7 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
   const template = POKEMON_TEMPLATES[pokemonId];
   if (!template) return null;
 
-  const startingMoveIds = getMovesAtLevel(pokemonId, 1);
-  const startingMoves = startingMoveIds.map((id) => MOVES[id]).filter(Boolean);
+  const startingMoves = getStarterDeck(pokemonId);
 
   return (
     <button
@@ -100,8 +98,7 @@ export default function StarterSelectScreen() {
   const [selectedId, setSelectedId] = useState<number>(starters[0].id);
 
   const selectedTemplate = POKEMON_TEMPLATES[selectedId];
-  const detailMoveIds = getMovesAtLevel(selectedId, 1);
-  const detailMoves = detailMoveIds.map((id) => MOVES[id]).filter(Boolean);
+  const detailMoves = getStarterDeck(selectedId);
 
   const handleConfirm = () => {
     const pokemon = buildPokemon(selectedId, 5);

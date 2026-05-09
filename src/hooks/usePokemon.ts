@@ -1,44 +1,53 @@
 import { useState, useEffect } from 'react';
 
 const spriteCache = new Map<number, string>();
+const backSpriteCache = new Map<number, string>();
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 
-export function getPokemonSpriteUrl(pokemonId: number, shiny = false): string {
-  return shiny
-    ? `${SPRITE_BASE}/shiny/${pokemonId}.png`
-    : `${SPRITE_BASE}/${pokemonId}.png`;
+export function getPokemonSpriteUrl(pokemonId: number, shiny = false, back = false): string {
+  if (shiny) return `${SPRITE_BASE}/shiny/${pokemonId}.png`;
+  if (back) return `${SPRITE_BASE}/back/${pokemonId}.png`;
+  return `${SPRITE_BASE}/${pokemonId}.png`;
 }
 
-export function usePokemonSprite(pokemonId: number | null) {
-  const cached = pokemonId !== null ? (spriteCache.get(pokemonId) ?? null) : null;
+export function usePokemonSprite(pokemonId: number | null, back = false) {
+  const cache = back ? backSpriteCache : spriteCache;
+  const cached = pokemonId !== null ? (cache.get(pokemonId) ?? null) : null;
   const [spriteUrl, setSpriteUrl] = useState<string | null>(cached);
   const [loading, setLoading] = useState(pokemonId !== null && cached === null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (pokemonId === null) return;
-    if (spriteCache.has(pokemonId)) {
-      setSpriteUrl(spriteCache.get(pokemonId)!);
+    if (cache.has(pokemonId)) {
+      setSpriteUrl(cache.get(pokemonId)!);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    const url = getPokemonSpriteUrl(pokemonId);
+    const url = getPokemonSpriteUrl(pokemonId, false, back);
     const img = new Image();
     img.onload = () => {
-      spriteCache.set(pokemonId, url);
+      cache.set(pokemonId, url);
       setSpriteUrl(url);
       setLoading(false);
     };
     img.onerror = () => {
-      setError(`Failed to load sprite for #${pokemonId}`);
+      // fall back to front sprite if back doesn't exist
+      if (back) {
+        const frontUrl = getPokemonSpriteUrl(pokemonId, false, false);
+        setSpriteUrl(frontUrl);
+      } else {
+        setError(`Failed to load sprite for #${pokemonId}`);
+      }
       setLoading(false);
     };
     img.src = url;
-  }, [pokemonId]);
+  }, [pokemonId, back]); // eslint-disable-line
 
   return { spriteUrl, loading, error };
 }

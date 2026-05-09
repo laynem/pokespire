@@ -4,13 +4,22 @@ import { useRunStore } from '../store/runStore';
 import { generateMap, getAvailableNodes } from '../utils/mapGenerator';
 import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
 import { ACT_BOSS } from '../data/gymLeaders';
-import type { MapNode, NodeType } from '../types';
+import type { MapNode, NodeType, PokemonType } from '../types';
 import logo from '../assets/logo.png';
 
 const ACT_THEMES = {
-  1: { bg: 'bg-green-950',   title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
-  2: { bg: 'bg-slate-950',   title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
-  3: { bg: 'bg-zinc-950',    title: 'Viridian City',  subtitle: 'Final approach to the Gym' },
+  1: { bg: 'bg-green-950',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
+  2: { bg: 'bg-slate-950',  title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
+  3: { bg: 'bg-zinc-950',   title: 'Viridian City', subtitle: 'Final approach to the Gym' },
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  Normal: 'bg-gray-500', Fire: 'bg-orange-600', Water: 'bg-blue-600',
+  Electric: 'bg-yellow-500', Grass: 'bg-green-600', Ice: 'bg-cyan-400',
+  Fighting: 'bg-red-700', Poison: 'bg-purple-600', Ground: 'bg-yellow-700',
+  Flying: 'bg-indigo-400', Psychic: 'bg-pink-500', Bug: 'bg-lime-600',
+  Rock: 'bg-yellow-800', Ghost: 'bg-purple-800', Dragon: 'bg-indigo-700',
+  Dark: 'bg-gray-700', Steel: 'bg-slate-500', Fairy: 'bg-pink-300',
 };
 
 const NODE_ROUTE: Record<NodeType, string> = {
@@ -23,9 +32,8 @@ const NODE_ROUTE: Record<NodeType, string> = {
   event:    '/combat',
 };
 
-// Layout: column positions as fractions of container width
 const COL_X = [0.2, 0.5, 0.8];
-const ROW_HEIGHT = 80; // px per row, rendered bottom→top
+const ROW_HEIGHT = 90;
 
 interface NodePos { id: string; x: number; y: number }
 
@@ -36,12 +44,9 @@ function useNodePositions(nodes: MapNode[], containerWidth: number): Map<string,
     const totalRows = rows.length;
     nodes.forEach((node) => {
       const rowIndex = rows.indexOf(node.row);
-      // Render rows bottom→top so row 0 is at bottom
-      const y = (totalRows - 1 - rowIndex) * ROW_HEIGHT + 40;
+      const y = (totalRows - 1 - rowIndex) * ROW_HEIGHT + 56;
       const colsInRow = nodes.filter((n) => n.row === node.row).length;
-      const colPositions = colsInRow === 1
-        ? [0.5]
-        : COL_X.slice(0, colsInRow);
+      const colPositions = colsInRow === 1 ? [0.5] : COL_X.slice(0, colsInRow);
       const x = (colPositions[node.col] ?? 0.5) * containerWidth;
       map.set(node.id, { id: node.id, x, y });
     });
@@ -63,29 +68,20 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
     node.connections.forEach((toId) => {
       const to = positions.get(toId);
       if (!to) return;
-      lines.push({
-        x1: from.x, y1: from.y,
-        x2: to.x,   y2: to.y,
-        active: available.includes(toId),
-      });
+      lines.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y, active: available.includes(toId) });
     });
   });
 
   return (
-    <svg
-      className="absolute inset-0 pointer-events-none"
-      width={width}
-      height={height}
-    >
+    <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>
       {lines.map((l, i) => (
         <line
           key={i}
-          x1={l.x1} y1={l.y1}
-          x2={l.x2} y2={l.y2}
+          x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
           stroke={l.active ? '#facc15' : '#374151'}
-          strokeWidth={l.active ? 2 : 1.5}
-          strokeDasharray={l.active ? undefined : '4 4'}
-          opacity={l.active ? 0.8 : 0.4}
+          strokeWidth={l.active ? 2.5 : 1.5}
+          strokeDasharray={l.active ? undefined : '5 5'}
+          opacity={l.active ? 0.9 : 0.35}
         />
       ))}
     </svg>
@@ -94,8 +90,9 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
 
 export default function MapScreen() {
   const navigate = useNavigate();
-  const { currentMap, currentNodeId, act, seed, items, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
+  const { currentMap, currentNodeId, act, seed, items, party, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapScrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(320);
 
   useEffect(() => {
@@ -108,7 +105,6 @@ export default function MapScreen() {
 
   const theme = ACT_THEMES[act as 1 | 2 | 3] ?? ACT_THEMES[1];
 
-  // Generate map on first visit per act
   useEffect(() => {
     if (currentMap.length === 0) {
       const nodes = generateMap(seed, act);
@@ -116,16 +112,23 @@ export default function MapScreen() {
     }
   }, [act, seed]); // eslint-disable-line
 
+  // Scroll to bottom (entry row) on map load
+  useEffect(() => {
+    if (currentMap.length > 0 && mapScrollRef.current) {
+      mapScrollRef.current.scrollTop = mapScrollRef.current.scrollHeight;
+    }
+  }, [currentMap.length]);
+
   const available = useMemo(
     () => getAvailableNodes(currentMap, currentNodeId),
-    [currentMap, currentNodeId]
+    [currentMap, currentNodeId],
   );
 
   const positions = useNodePositions(currentMap, containerWidth || 320);
 
   const rows = Array.from(new Set(currentMap.map((n) => n.row))).sort((a, b) => a - b);
   const totalRows = rows.length;
-  const svgHeight = totalRows * ROW_HEIGHT + 40;
+  const svgHeight = totalRows * ROW_HEIGHT + 56;
 
   function nodeState(node: MapNode): 'cleared' | 'available' | 'locked' {
     if (node.cleared) return 'cleared';
@@ -145,80 +148,123 @@ export default function MapScreen() {
   }
 
   return (
-    <div className={`min-h-screen ${theme.bg} text-white flex flex-col items-center px-4 py-6 gap-4`}>
-      {/* Header */}
-      <div className="flex items-center justify-between w-full max-w-sm">
-        <div>
-          <img src={logo} alt="PokeSpire" className="h-8 mb-0.5" />
-          <p className="text-xs text-gray-400">{theme.title} · {theme.subtitle}</p>
+    <div className={`fixed inset-0 ${theme.bg} text-white flex overflow-hidden`}>
+
+      {/* ── Left Sidebar ─────────────────────────────────────────── */}
+      <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto">
+
+        {/* Logo + act info */}
+        <div className="p-3 border-b border-white/10">
+          <img src={logo} alt="PokeSpire" className="h-7 mb-1" />
+          <p className="text-xs text-yellow-400 font-bold">Act {act} — {theme.title}</p>
+          <p className="text-xs text-gray-400">{theme.subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {items.length > 0 && (
-            <div className="flex gap-0.5">
+
+        {/* Party */}
+        <div className="px-3 py-3 flex-1">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Your Party</p>
+          {party.length === 0 ? (
+            <p className="text-xs text-gray-600">No Pokémon</p>
+          ) : (
+            party.map((p) => (
+              <div key={`${p.id}-${p.name}`} className="mb-3">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs font-bold truncate text-gray-100">{p.name}</span>
+                  <span className="text-xs text-gray-500 ml-1 shrink-0">Lv{p.level}</span>
+                </div>
+                <div className="flex gap-1 mt-0.5 flex-wrap">
+                  {p.types.map((t: PokemonType) => (
+                    <span key={t} className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-xs px-1.5 py-0 rounded leading-5`}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Items */}
+        {items.length > 0 && (
+          <div className="px-3 py-2 border-t border-white/10">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Items</p>
+            <div className="flex flex-wrap gap-1">
               {items.map((item) => (
-                <span key={item.id} title={`${item.name}: ${item.description}`} className="text-base cursor-default">
+                <span key={item.id} title={`${item.name}: ${item.description}`} className="text-lg cursor-default">
                   {item.icon}
                 </span>
               ))}
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="px-3 py-2 border-t border-white/10">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-1.5">Legend</p>
+          <div className="flex flex-col gap-1">
+            {(['combat', 'elite', 'boss', 'treasure', 'rest', 'shop', 'event'] as NodeType[]).map((t) => {
+              const { icon, label } = NODE_META[t];
+              return (
+                <span key={t} className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <span>{icon}</span><span>{label}</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Abandon */}
+        <div className="p-3 border-t border-white/10">
           <button
             onClick={() => { endRun(); navigate('/'); }}
-            className="text-gray-600 hover:text-red-400 text-xs transition"
+            className="w-full text-gray-600 hover:text-red-400 text-xs transition py-1 text-center"
           >
-            Abandon
+            Abandon Run
           </button>
         </div>
       </div>
 
-      {/* Map canvas */}
-      <div
-        ref={containerRef}
-        className="relative w-full max-w-sm"
-        style={{ height: svgHeight }}
-      >
-        {currentMap.length > 0 && (
-          <>
-            <MapEdgesSvg
-              nodes={currentMap}
-              positions={positions}
-              available={available}
-              height={svgHeight}
-              width={containerWidth || 320}
-            />
-            {currentMap.map((node) => {
-              const pos = positions.get(node.id);
-              if (!pos) return null;
-              const state = nodeState(node);
-              return (
-                <div
-                  key={node.id}
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: pos.x, top: pos.y }}
-                >
-                  <MapNodeIcon
-                    type={node.type}
-                    state={state}
-                    isCurrent={node.id === currentNodeId}
-                    onClick={() => handleNodeClick(node)}
-                  />
-                </div>
-              );
-            })}
-          </>
-        )}
-      </div>
+      {/* ── Map Canvas ───────────────────────────────────────────── */}
+      <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
+        {/* Dot-grid background */}
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+        />
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 justify-center text-xs text-gray-500 max-w-sm">
-        {(['combat','elite','boss','treasure','rest','shop'] as NodeType[]).map((t) => {
-          const { icon, label } = NODE_META[t];
-          return (
-            <span key={t} className="flex items-center gap-1">
-              <span>{icon}</span><span>{label}</span>
-            </span>
-          );
-        })}
+        {/* Inner canvas sized to fit all nodes */}
+        <div ref={containerRef} className="relative" style={{ height: Math.max(svgHeight, 600) }}>
+          {currentMap.length > 0 && (
+            <>
+              <MapEdgesSvg
+                nodes={currentMap}
+                positions={positions}
+                available={available}
+                height={Math.max(svgHeight, 600)}
+                width={containerWidth || 320}
+              />
+              {currentMap.map((node) => {
+                const pos = positions.get(node.id);
+                if (!pos) return null;
+                const state = nodeState(node);
+                return (
+                  <div
+                    key={node.id}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: pos.x, top: pos.y }}
+                  >
+                    <MapNodeIcon
+                      type={node.type}
+                      state={state}
+                      isCurrent={node.id === currentNodeId}
+                      onClick={() => handleNodeClick(node)}
+                    />
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

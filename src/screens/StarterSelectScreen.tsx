@@ -39,13 +39,13 @@ function TypeBadge({ type }: { type: PokemonType }) {
 function StarterSprite({ pokemonId }: { pokemonId: number }) {
   const { spriteUrl, loading } = usePokemonSprite(pokemonId);
   if (loading || !spriteUrl) {
-    return <div className="w-24 h-24 flex items-center justify-center text-4xl">🔴</div>;
+    return <div className="w-full aspect-square flex items-center justify-center text-6xl">🔴</div>;
   }
   return (
     <img
       src={spriteUrl}
       alt=""
-      className="w-24 h-24 object-contain pixelated"
+      className="w-full aspect-square object-contain"
       style={{ imageRendering: 'pixelated' }}
     />
   );
@@ -110,11 +110,11 @@ export default function StarterSelectScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-6">
+    <div className="absolute inset-0 bg-gray-900 text-white flex flex-col items-center justify-center px-4 py-6 gap-6 overflow-y-auto">
       <h2 className="text-3xl font-bold text-yellow-400">Choose Your Starter</h2>
 
       {/* 4 starter cards — 2×2 on mobile, 4-wide on desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">
+      <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
         {starters.map(({ id }) => (
           <StarterCard
             key={id}

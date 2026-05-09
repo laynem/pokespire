@@ -36,6 +36,18 @@ export interface Pokemon {
   moves: Move[];
   status: 'burn' | 'freeze' | 'paralysis' | 'poison' | 'sleep' | null;
   sprite?: string;
+  xp: number;
+}
+
+export interface LevelUpResult {
+  pokemonName: string;
+  newLevel: number;
+  hpGain: number;
+  atkGain: number;
+  defGain: number;
+  spAtkGain: number;
+  spDefGain: number;
+  spdGain: number;
 }
 
 export interface Trainer {

@@ -3,16 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { GYM_LEADERS } from '../data/gymLeaders';
 import { ITEMS_DATA } from '../data/items';
+import type { LevelUpResult } from '../types';
 
 interface BossRewardState {
   bossLeaderId: string;
   gold: number;
+  levelUps?: LevelUpResult[];
 }
 
 export default function BossRewardScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { bossLeaderId, gold } = (location.state as BossRewardState) ?? { bossLeaderId: 'brock', gold: 150 };
+  const { bossLeaderId, gold, levelUps = [] } = (location.state as BossRewardState) ?? { bossLeaderId: 'brock', gold: 150 };
   const { addBadge, addItem, addGold, advanceAct, act } = useRunStore();
 
   const leader = GYM_LEADERS[bossLeaderId];
@@ -43,7 +45,7 @@ export default function BossRewardScreen() {
         navigate('/victory');
       } else {
         advanceAct();
-        navigate('/map');
+        navigate('/map', { state: { levelUps } });
       }
     }, 800);
   }

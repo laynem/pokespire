@@ -1,4 +1,4 @@
-import type { Pokemon, Move, Item } from '../types';
+import type { Pokemon, Move, Item, LevelUpResult } from '../types';
 import { getMultiplier } from './typeChart';
 
 export function getEnergyCost(move: Move): number {
@@ -34,6 +34,7 @@ export interface CombatState {
   bossLeaderId: string | null;
   bossName: string | null;
   badges: string[];                 // earned badges for bonus effects
+  participantIds: number[];         // indices into playerParty that participated
 }
 
 // Build a shuffled deck: each move repeated min(pp,3) times
@@ -103,8 +104,10 @@ export function calcDamage(
   const def = defBase * stageMultiplier(defender.statStages.defense);
   const roll = 0.85 + Math.random() * 0.15;
   const bandMult = choiceBandBonus ? 1.25 : 1;
-  const raw = Math.floor((move.power * atk) / Math.max(def, 1) * roll * multiplier * bandMult);
-  return Math.max(1, raw);
+  // Level-scaled formula (Gen I inspired): keeps damage proportional to HP at all levels
+  const levelFactor = Math.floor(2 * attacker.level / 5) + 2;
+  const raw = Math.floor(Math.floor(levelFactor * move.power * atk / Math.max(def, 1)) / 50) + 2;
+  return Math.max(1, Math.floor(raw * roll * multiplier * bandMult));
 }
 
 // --- Status tick ---
@@ -491,6 +494,85 @@ export function startPlayerTurn(state: CombatState): CombatState {
   return next;
 }
 
+// --- XP and leveling ---
+
+const XP_PER_LEVEL_STAT_GAINS = {
+  hp: 5, attack: 2, defense: 2, spAtk: 2, spDef: 2, speed: 2,
+};
+
+function xpToNextLevel(level: number): number {
+  return level * 100;
+}
+
+export function awardXp(
+  party: CombatPokemon[],
+  participantIndices: number[],
+  enemyLevel: number,
+): { updatedParty: CombatPokemon[]; levelUps: LevelUpResult[] } {
+  const totalXp = enemyLevel * 10;
+  // Only living participants share XP
+  const livingParticipants = participantIndices.filter((i) => party[i] && party[i].currentHp > 0);
+  if (livingParticipants.length === 0) return { updatedParty: party, levelUps: [] };
+
+  const xpEach = Math.floor(totalXp / livingParticipants.length);
+  const levelUps: LevelUpResult[] = [];
+  const updatedParty = [...party];
+
+  for (const idx of livingParticipants) {
+    let pokemon = { ...updatedParty[idx] };
+    pokemon = { ...pokemon, xp: (pokemon.xp ?? 0) + xpEach };
+
+    // Apply level-ups (may be multiple if xp is large)
+    let leveled = false;
+    const gains = { hp: 0, attack: 0, defense: 0, spAtk: 0, spDef: 0, speed: 0 };
+
+    while (pokemon.xp >= xpToNextLevel(pokemon.level)) {
+      pokemon = { ...pokemon, xp: pokemon.xp - xpToNextLevel(pokemon.level) };
+      pokemon = { ...pokemon, level: pokemon.level + 1 };
+
+      // Stat gains
+      pokemon = {
+        ...pokemon,
+        baseStats: {
+          hp: pokemon.baseStats.hp + XP_PER_LEVEL_STAT_GAINS.hp,
+          attack: pokemon.baseStats.attack + XP_PER_LEVEL_STAT_GAINS.attack,
+          defense: pokemon.baseStats.defense + XP_PER_LEVEL_STAT_GAINS.defense,
+          spAtk: pokemon.baseStats.spAtk + XP_PER_LEVEL_STAT_GAINS.spAtk,
+          spDef: pokemon.baseStats.spDef + XP_PER_LEVEL_STAT_GAINS.spDef,
+          speed: pokemon.baseStats.speed + XP_PER_LEVEL_STAT_GAINS.speed,
+        },
+        maxHp: pokemon.maxHp + XP_PER_LEVEL_STAT_GAINS.hp,
+        currentHp: pokemon.currentHp + XP_PER_LEVEL_STAT_GAINS.hp,
+      };
+
+      gains.hp += XP_PER_LEVEL_STAT_GAINS.hp;
+      gains.attack += XP_PER_LEVEL_STAT_GAINS.attack;
+      gains.defense += XP_PER_LEVEL_STAT_GAINS.defense;
+      gains.spAtk += XP_PER_LEVEL_STAT_GAINS.spAtk;
+      gains.spDef += XP_PER_LEVEL_STAT_GAINS.spDef;
+      gains.speed += XP_PER_LEVEL_STAT_GAINS.speed;
+      leveled = true;
+    }
+
+    if (leveled) {
+      levelUps.push({
+        pokemonName: pokemon.name,
+        newLevel: pokemon.level,
+        hpGain: gains.hp,
+        atkGain: gains.attack,
+        defGain: gains.defense,
+        spAtkGain: gains.spAtk,
+        spDefGain: gains.spDef,
+        spdGain: gains.speed,
+      });
+    }
+
+    updatedParty[idx] = pokemon;
+  }
+
+  return { updatedParty, levelUps };
+}
+
 // --- Restore PP after combat ---
 export function restorePartyPp(party: CombatPokemon[]): CombatPokemon[] {
   return party.map((p) => {
@@ -545,6 +627,7 @@ export function initCombat(
     bossLeaderId: bossConfig?.leaderId ?? null,
     bossName: bossConfig?.bossName ?? null,
     badges: bossConfig?.badges ?? [],
+    participantIds: [0],
   };
 
   return drawCards(base, 4);

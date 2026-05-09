@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCombatStore, getRestoredParty } from '../store/combatStore';
 import { useRunStore } from '../store/runStore';
 import { usePokemonSprite } from '../hooks/usePokemon';
 import MoveCard from '../components/MoveCard';
-import { getEnergyCost } from '../utils/combatEngine';
+import { getEnergyCost, awardXp } from '../utils/combatEngine';
 import { buildPokemon } from '../utils/pokemonFactory';
 import { GYM_LEADERS } from '../data/gymLeaders';
 import type { CombatPokemon } from '../utils/combatEngine';
@@ -99,10 +99,12 @@ let dmgIdCounter = 0;
 export default function CombatScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems } = useRunStore();
+  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
+  const [showGiveUp, setShowGiveUp] = useState(false);
   const [lastLog, setLastLog] = useState<string[]>([]);
+  const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
 
   const [enemyHitKey, setEnemyHitKey] = useState(0);
   const [playerHitKey, setPlayerHitKey] = useState(0);
@@ -198,15 +200,22 @@ export default function CombatScreen() {
   useEffect(() => {
     if (combat.phase === 'victory') {
       const t = setTimeout(() => {
-        if (combat.playerParty.length > 0) updateParty(getRestoredParty(combat.playerParty));
+        // Award XP before restoring party
+        const { updatedParty, levelUps } = awardXp(
+          combat.playerParty,
+          combat.participantIds,
+          combat.enemy.level,
+        );
+        const restored = getRestoredParty(updatedParty);
+        if (combat.playerParty.length > 0) updateParty(restored);
         if (currentNodeId) clearNode(currentNodeId);
         if (updateItems) updateItems(combat.items);
         let gold = 10 + Math.floor(Math.random() * 11);
         if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
         const winBossLeaderId = combat.bossLeaderId;
         combat.clearCombat();
-        if (winBossLeaderId) navigate('/boss-reward', { state: { bossLeaderId: winBossLeaderId, gold } });
-        else navigate('/reward', { state: { gold } });
+        if (winBossLeaderId) navigate('/boss-reward', { state: { bossLeaderId: winBossLeaderId, gold, levelUps } });
+        else navigate('/reward', { state: { gold, levelUps } });
       }, 1500);
       return () => clearTimeout(t);
     }
@@ -226,9 +235,9 @@ export default function CombatScreen() {
   const bgClass = bossData?.bgClass ?? 'bg-sky-900';
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden text-white">
+    <div className="absolute inset-0 flex flex-col overflow-hidden text-white">
 
-      {/* ══ BATTLEFIELD ════════════════════════════════════════════ */}
+      {/* ══ BATTLEFIELD (fills all height, hand floats over it) ═══ */}
       <div className={`flex-1 relative overflow-hidden ${isBoss ? bgClass : ''}`}>
 
         {/* Background */}
@@ -329,57 +338,88 @@ export default function CombatScreen() {
             </span>
           </div>
         )}
-      </div>
 
-      {/* ══ HAND PANEL ═════════════════════════════════════════════ */}
-      <div className="shrink-0 bg-stone-900 border-t-4 border-stone-700 flex flex-col" style={{ height: '220px' }}>
+        {/* ══ FLOATING HAND PANEL (transparent, overlays battlefield) */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
 
-        {/* Controls row */}
-        <div className="flex items-center justify-between px-4 pt-2.5 pb-1.5 shrink-0">
-          <EnergyPips current={combat.playerEnergy} />
+          {/* Controls row */}
+          <div className="flex items-center justify-between px-4 pt-2 pb-1 pointer-events-auto">
+            <EnergyPips current={combat.playerEnergy} />
 
-          {!isPlayerTurn && (
-            <span className="text-xs text-stone-400 animate-pulse">Enemy is attacking…</span>
-          )}
-
-          <div className="flex gap-2">
-            {combat.playerParty.length > 1 && isPlayerTurn && (
-              <button
-                onClick={() => setShowSwitch(!showSwitch)}
-                className="text-xs bg-stone-700 hover:bg-stone-600 text-gray-200 px-2.5 py-1.5 rounded transition"
-              >
-                Switch
-              </button>
+            {!isPlayerTurn && (
+              <span className="text-xs text-stone-300/80 animate-pulse drop-shadow">Enemy is attacking…</span>
             )}
-            <button
-              onClick={() => combat.endTurn()}
-              disabled={!isPlayerTurn}
-              className="text-xs bg-blue-700 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-1.5 rounded transition font-bold text-white"
-            >
-              End Turn
-            </button>
-          </div>
-        </div>
 
-        {/* Card hand */}
-        <div className="flex gap-2.5 px-4 pb-3 overflow-x-auto flex-1 items-center">
-          {combat.playerHand.map((move, i) => {
-            const cost = getEnergyCost(move);
-            const pp = activePlayer.currentPp[move.id] ?? 0;
-            return (
-              <MoveCard
-                key={`${move.id}-${i}`}
-                move={move}
-                energyCost={cost}
-                currentPp={pp}
-                disabled={!isPlayerTurn || combat.playerEnergy < cost || pp <= 0}
-                onClick={() => isPlayerTurn && combat.playCard(move)}
-              />
-            );
-          })}
-          {combat.playerHand.length === 0 && isPlayerTurn && (
-            <p className="text-stone-500 text-sm w-full text-center">No cards — End Turn to draw</p>
-          )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowGiveUp(true)}
+                className="text-xs bg-stone-800/80 hover:bg-red-900/80 text-gray-300 hover:text-red-300 px-2.5 py-1.5 rounded transition backdrop-blur-sm"
+              >
+                Give Up
+              </button>
+              {combat.playerParty.length > 1 && isPlayerTurn && (
+                <button
+                  onClick={() => setShowSwitch(!showSwitch)}
+                  className="text-xs bg-stone-800/80 hover:bg-stone-600/80 text-gray-200 px-2.5 py-1.5 rounded transition backdrop-blur-sm"
+                >
+                  Switch
+                </button>
+              )}
+              <button
+                onClick={() => combat.endTurn()}
+                disabled={!isPlayerTurn}
+                className="text-xs bg-blue-700/90 hover:bg-blue-600/90 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-1.5 rounded transition font-bold text-white backdrop-blur-sm"
+              >
+                End Turn
+              </button>
+            </div>
+          </div>
+
+          {/* Card fan */}
+          <div className="flex justify-center items-end overflow-visible pb-2 pt-1" style={{ minHeight: '170px' }}>
+            {combat.playerHand.length === 0 && isPlayerTurn ? (
+              <p className="text-stone-300/60 text-sm pointer-events-auto mb-6 drop-shadow">No cards — End Turn to draw</p>
+            ) : (
+              combat.playerHand.map((move, i) => {
+                const cost = getEnergyCost(move);
+                const pp = activePlayer.currentPp[move.id] ?? 0;
+                const count = combat.playerHand.length;
+                const center = (count - 1) / 2;
+                const offset = i - center;
+                const rotateDeg = offset * 8;
+                const translateY = Math.abs(offset) * 12;
+                const isHovered = hoveredCardIndex === i;
+
+                const cardStyle: CSSProperties = {
+                  transformOrigin: 'bottom center',
+                  transform: isHovered
+                    ? 'rotate(0deg) translateY(-60px) scale(1.4)'
+                    : `rotate(${rotateDeg}deg) translateY(${translateY}px)`,
+                  zIndex: isHovered ? 50 : count - Math.abs(Math.round(offset)),
+                  marginLeft: i === 0 ? 0 : '-20px',
+                  transition: 'transform 150ms ease, z-index 0ms',
+                };
+
+                return (
+                  <div
+                    key={`${move.id}-${i}`}
+                    className="pointer-events-auto"
+                    style={cardStyle}
+                    onMouseEnter={() => setHoveredCardIndex(i)}
+                    onMouseLeave={() => setHoveredCardIndex(null)}
+                  >
+                    <MoveCard
+                      move={move}
+                      energyCost={cost}
+                      currentPp={pp}
+                      disabled={!isPlayerTurn || combat.playerEnergy < cost}
+                      onClick={() => isPlayerTurn && combat.playCard(move)}
+                    />
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 
@@ -418,6 +458,29 @@ export default function CombatScreen() {
                 <span className="text-xs text-gray-400">{p.currentHp}/{p.maxHp}</span>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Give up confirm */}
+      {showGiveUp && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-gray-900 border border-red-800/60 rounded-2xl p-6 w-72 flex flex-col gap-4 text-center">
+            <p className="text-2xl">🏳️</p>
+            <p className="font-bold text-white text-lg">Give Up?</p>
+            <p className="text-gray-400 text-sm">This will end your run. All progress will be lost.</p>
+            <button
+              onClick={() => { combat.clearCombat(); endRun(); navigate('/'); }}
+              className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2.5 rounded-lg transition"
+            >
+              End Run
+            </button>
+            <button
+              onClick={() => setShowGiveUp(false)}
+              className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2.5 rounded-lg transition"
+            >
+              Keep Fighting
+            </button>
           </div>
         </div>
       )}

@@ -11,18 +11,27 @@ function makeRng(seed: number) {
   };
 }
 
-// 65% wild battle, 10% rest, 10% shop, 15% event
-const NODE_WEIGHTS: Array<[NodeType, number]> = [
-  ['combat', 65],
-  ['rest',   10],
-  ['shop',   10],
-  ['event',  15],
-];
+// Row-based weights: catch heavy early, rest heavy late, ? replaced by catch
+// row is 0-indexed (0 = first row after home, ROWS_PER_ACT-1 = last before boss)
+function getRowWeights(row: number, totalRows: number): Array<[NodeType, number]> {
+  const progress = row / (totalRows - 1); // 0.0 (early) → 1.0 (late)
+  const catchW  = Math.round(30 - progress * 25); // 30 → 5
+  const restW   = Math.round(2  + progress * 18); // 2  → 20
+  const shopW   = 10;
+  const combatW = 100 - catchW - restW - shopW;
+  return [
+    ['combat',   Math.max(combatW, 40)],
+    ['treasure', catchW],
+    ['rest',     restW],
+    ['shop',     shopW],
+  ];
+}
 
-function weightedPick(rng: () => number): NodeType {
-  const total = NODE_WEIGHTS.reduce((s, [, w]) => s + w, 0);
+function weightedPick(rng: () => number, row: number, totalRows: number): NodeType {
+  const weights = getRowWeights(row, totalRows);
+  const total = weights.reduce((s, [, w]) => s + w, 0);
   let roll = rng() * total;
-  for (const [type, weight] of NODE_WEIGHTS) {
+  for (const [type, weight] of weights) {
     roll -= weight;
     if (roll <= 0) return type;
   }
@@ -55,7 +64,7 @@ export function generateMap(seed: number, act: number): MapNode[] {
       rowIds.push(id);
       nodes.push({
         id,
-        type: isBossRow ? 'boss' : weightedPick(rng),
+        type: isBossRow ? 'boss' : weightedPick(rng, row, ROWS_PER_ACT),
         act,
         row,
         col,

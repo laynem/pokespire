@@ -1,11 +1,11 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { generateMap, getAvailableNodes } from '../utils/mapGenerator';
 import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
+import LevelUpToast from '../components/LevelUpToast';
 import { ACT_BOSS } from '../data/gymLeaders';
-import type { MapNode, NodeType, PokemonType } from '../types';
-import logo from '../assets/logo.png';
+import type { MapNode, NodeType, PokemonType, LevelUpResult } from '../types';
 
 const ACT_THEMES = {
   1: { bg: 'bg-green-900',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
@@ -78,7 +78,7 @@ const NODE_ROUTE: Record<NodeType, string> = {
   treasure: '/catch',
   rest:     '/center',
   shop:     '/mart',
-  event:    '/combat',
+  event:    '/catch',
 };
 
 const ROW_HEIGHT = 110;
@@ -157,6 +157,8 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
 
 export default function MapScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const levelUps: LevelUpResult[] = (location.state as { levelUps?: LevelUpResult[] } | null)?.levelUps ?? [];
   const { currentMap, currentNodeId, act, seed, items, party, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapScrollRef = useRef<HTMLDivElement>(null);
@@ -219,14 +221,14 @@ export default function MapScreen() {
   }
 
   return (
-    <div className={`fixed inset-0 ${theme.bg} text-white flex overflow-hidden`}>
+    <div className={`absolute inset-0 ${theme.bg} text-white flex overflow-hidden`}>
+      {levelUps.length > 0 && <LevelUpToast levelUps={levelUps} />}
 
       {/* ── Left Sidebar ─────────────────────────────────────────── */}
       <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto">
 
-        {/* Logo + act info */}
+        {/* Act info */}
         <div className="p-3 border-b border-white/10">
-          <img src={logo} alt="PokeSpire" className="h-7 mb-1" />
           <p className="text-xs text-yellow-400 font-bold">Act {act} — {theme.title}</p>
           <p className="text-xs text-gray-400">{theme.subtitle}</p>
         </div>

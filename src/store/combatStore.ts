@@ -52,6 +52,7 @@ const DEFAULT_STATE: CombatState = {
   bossLeaderId: null,
   bossName: null,
   badges: [],
+  participantIds: [0],
 };
 
 export const useCombatStore = create<CombatStore>((set, get) => ({
@@ -68,9 +69,6 @@ export const useCombatStore = create<CombatStore>((set, get) => ({
 
     const cost = getEnergyCost(move);
     if (state.playerEnergy < cost) return;
-
-    const pp = state.playerParty[0]?.currentPp[move.id] ?? 0;
-    if (pp <= 0) return;
 
     let next = playMove(state, move, cost);
 
@@ -136,8 +134,22 @@ export const useCombatStore = create<CombatStore>((set, get) => ({
     const state = get();
     if (index === 0 || index >= state.playerParty.length) return;
 
+    // Track the incoming pokemon's current index as a participant
+    const newParticipantIds = state.participantIds.includes(index)
+      ? state.participantIds
+      : [...state.participantIds, index];
+
     const party = [...state.playerParty];
     [party[0], party[index]] = [party[index], party[0]];
+
+    // After swap, the new active is at index 0; remap participant indices
+    // The pokemon that was at `index` is now at 0; the one at 0 is now at `index`
+    const remappedParticipants = newParticipantIds.map((i) => {
+      if (i === 0) return index;
+      if (i === index) return 0;
+      return i;
+    });
+    const uniqueParticipants = [...new Set(remappedParticipants)];
 
     // Rebuild deck for new active Pokemon
     const newActive = party[0];
@@ -148,6 +160,7 @@ export const useCombatStore = create<CombatStore>((set, get) => ({
       playerHand: [],
       playerDeck: deck,
       playerDiscard: [],
+      participantIds: uniqueParticipants,
       log: [...state.log, `Go, ${newActive.name}!`],
     };
 

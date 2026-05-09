@@ -45,6 +45,7 @@ export function buildPokemon(pokemonId: number, level: number, overrideMoveIds?:
     moves,
     status: null,
     sprite: template.sprite,
+    xp: 0,
   };
 }
 

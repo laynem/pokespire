@@ -5,10 +5,11 @@ import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
 import { getEnergyCost } from '../utils/combatEngine';
 import MoveCard from '../components/MoveCard';
-import type { Move, Pokemon } from '../types';
+import type { Move, Pokemon, LevelUpResult } from '../types';
 
 interface RewardState {
   gold: number;
+  levelUps?: LevelUpResult[];
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -34,7 +35,7 @@ function getDraftMoves(pokemon: Pokemon): Move[] {
 export default function RewardScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { gold: goldEarned } = (location.state as RewardState) ?? { gold: 15 };
+  const { gold: goldEarned, levelUps = [] } = (location.state as RewardState) ?? { gold: 15 };
 
   const { party, items, addGold, addMoveToParty, incrementMovesLearned } = useRunStore();
   const hasExpShare = items.some((i) => i.id === 'exp_share');
@@ -60,7 +61,7 @@ export default function RewardScreen() {
     if (nextIndex < draftTargets.length) {
       setDraftIndex(nextIndex);
     } else {
-      navigate('/map');
+      navigate('/map', { state: { levelUps } });
     }
   };
 

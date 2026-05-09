@@ -92,8 +92,9 @@ export default function CombatScreen() {
           updateParty(restored);
         }
         if (currentNodeId) clearNode(currentNodeId);
+        const gold = 10 + Math.floor(Math.random() * 11); // 10–20g wild battle
         combat.clearCombat();
-        navigate('/victory');
+        navigate('/reward', { state: { gold } });
       }, 1500);
       return () => clearTimeout(timer);
     }

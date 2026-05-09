@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { RunState, Trainer, Pokemon, MapNode, Item } from '../types';
+import type { RunState, Trainer, Pokemon, MapNode, Item, Move } from '../types';
 
 interface RunActions {
   startRun: (trainer: Trainer, starterPokemon: Pokemon) => void;
@@ -12,6 +12,7 @@ interface RunActions {
   addItem: (item: Item) => void;
   removeItem: (itemId: string) => void;
   updateParty: (party: Pokemon[]) => void;
+  addMoveToParty: (pokemonIndex: number, move: Move) => void;
   addBadge: (badge: string) => void;
   incrementPokemonCaught: () => void;
   incrementMovesLearned: () => void;
@@ -88,6 +89,15 @@ export const useRunStore = create<RunState & RunActions>()(
         set((state) => ({ items: state.items.filter((i) => i.id !== itemId) })),
 
       updateParty: (party) => set({ party }),
+
+      addMoveToParty: (pokemonIndex, move) =>
+        set((state) => {
+          const party = [...state.party];
+          const pokemon = party[pokemonIndex];
+          if (!pokemon || pokemon.moves.some((m) => m.id === move.id)) return {};
+          party[pokemonIndex] = { ...pokemon, moves: [...pokemon.moves, move] };
+          return { party };
+        }),
 
       addBadge: (badge) =>
         set((state) => ({

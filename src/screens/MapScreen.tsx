@@ -5,6 +5,7 @@ import { generateMap, getAvailableNodes } from '../utils/mapGenerator';
 import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
 import { ACT_BOSS } from '../data/gymLeaders';
 import type { MapNode, NodeType } from '../types';
+import logo from '../assets/logo.png';
 
 const ACT_THEMES = {
   1: { bg: 'bg-green-950',   title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
@@ -148,8 +149,8 @@ export default function MapScreen() {
       {/* Header */}
       <div className="flex items-center justify-between w-full max-w-sm">
         <div>
-          <h2 className="text-xl font-bold text-yellow-400">Act {act} — {theme.title}</h2>
-          <p className="text-xs text-gray-400">{theme.subtitle}</p>
+          <img src={logo} alt="PokeSpire" className="h-8 mb-0.5" />
+          <p className="text-xs text-gray-400">{theme.title} · {theme.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           {items.length > 0 && (

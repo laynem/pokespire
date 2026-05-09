@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
+import logoFull from '../assets/logo_full.png';
 
 export default function HomeScreen() {
   const navigate = useNavigate();
@@ -7,10 +8,7 @@ export default function HomeScreen() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-6">
-      <h1 className="text-6xl font-bold text-yellow-400 tracking-wider drop-shadow-lg">
-        PokeSpire
-      </h1>
-      <p className="text-gray-400 text-lg">A Pokémon Roguelike</p>
+      <img src={logoFull} alt="PokeSpire" className="w-72 drop-shadow-lg" />
       <div className="flex flex-col gap-3 w-48">
         {inRun && (
           <button

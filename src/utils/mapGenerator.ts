@@ -38,7 +38,7 @@ function pickColCount(rng: () => number): number {
   return 4;
 }
 
-const ROWS_PER_ACT = 8; // 8 regular rows + 1 boss = ~18-20 encounters
+const ROWS_PER_ACT = 15; // 15 regular rows + 1 boss = ~40 encounters, map scrolls
 
 export function generateMap(seed: number, act: number): MapNode[] {
   const rng = makeRng(seed ^ (act * 0xdeadbeef));

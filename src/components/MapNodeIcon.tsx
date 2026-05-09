@@ -1,3 +1,4 @@
+import { GYM_LEADERS } from '../data/gymLeaders';
 import type { NodeType } from '../types';
 
 export const NODE_META: Record<NodeType, { icon: string; label: string; color: string; glow: string }> = {
@@ -15,50 +16,63 @@ interface Props {
   type: NodeType;
   state: 'cleared' | 'available' | 'locked';
   isCurrent?: boolean;
+  bossLeaderId?: string;
   onClick?: () => void;
 }
 
-export default function MapNodeIcon({ type, state, isCurrent, onClick }: Props) {
+export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, onClick }: Props) {
   const meta = NODE_META[type];
   const isHome = type === 'home';
+  const isBoss = type === 'boss';
   const isClickable = state === 'available';
+  const gymLeader = isBoss && bossLeaderId ? GYM_LEADERS[bossLeaderId] : null;
 
-  // Home node always renders with a distinct non-faded look
+  const sizeClass = isBoss ? 'w-20 h-20' : 'w-14 h-14';
+
   const btnClass = [
-    'relative flex items-center justify-center w-14 h-14 rounded-full border-2 text-2xl',
+    `relative flex items-center justify-center ${sizeClass} rounded-full border-2 text-2xl`,
     'transition-all duration-150 select-none',
     isHome
-      ? 'border-gray-400 bg-gray-700 cursor-default opacity-80'
+      ? 'border-gray-400 bg-gray-700 cursor-default'
       : state === 'cleared'
-      ? 'border-gray-600 bg-gray-800/60 opacity-40 cursor-default grayscale'
+      ? `${meta.color} cursor-default grayscale brightness-50`
       : state === 'locked'
-      ? 'border-gray-600 bg-gray-900/70 opacity-55 cursor-default'
+      ? `${meta.color} cursor-default brightness-75`
       : `${meta.color} ${meta.glow} cursor-pointer hover:scale-110 hover:brightness-125`,
   ].join(' ');
 
   return (
     <div className="relative flex flex-col items-center gap-1.5">
       {isCurrent && (
-        <div className="absolute -inset-2 rounded-full animate-pulse-ring border-2 border-yellow-400/60 bg-yellow-400/10 pointer-events-none" />
+        <div className={`absolute -inset-2 rounded-full animate-pulse-ring border-2 border-yellow-400/60 bg-yellow-400/10 pointer-events-none`} />
       )}
 
       <button
         onClick={isClickable ? onClick : undefined}
         disabled={!isClickable}
-        title={meta.label}
+        title={isBoss && gymLeader ? gymLeader.name : meta.label}
         className={btnClass}
       >
-        {meta.icon}
+        {isBoss && gymLeader ? (
+          <img
+            src={gymLeader.spriteUrl}
+            alt={gymLeader.name}
+            className="w-full h-full object-cover object-top rounded-full"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          meta.icon
+        )}
         {state === 'cleared' && !isHome && (
           <span className="absolute -top-1 -right-1 text-xs bg-green-600 rounded-full w-4 h-4 flex items-center justify-center leading-none">✓</span>
         )}
       </button>
 
-      {(state === 'available' || isHome) && (
+      {(state === 'available' || isHome || isBoss) && (
         <span className={`text-xs font-semibold whitespace-nowrap leading-none drop-shadow ${
-          type === 'boss' ? 'text-yellow-300' : isHome ? 'text-gray-400' : 'text-gray-200'
+          isBoss ? 'text-yellow-300' : isHome ? 'text-gray-400' : 'text-gray-200'
         }`}>
-          {meta.label}
+          {isBoss && gymLeader ? gymLeader.name : meta.label}
         </span>
       )}
     </div>

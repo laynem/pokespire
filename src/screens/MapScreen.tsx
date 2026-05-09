@@ -146,10 +146,9 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
         <line
           key={i}
           x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-          stroke={l.active ? '#facc15' : 'rgba(255,255,255,0.35)'}
-          strokeWidth={l.active ? 2.5 : 1.5}
+          stroke={l.active ? '#facc15' : 'rgba(255,255,255,0.8)'}
+          strokeWidth={l.active ? 3 : 2}
           strokeDasharray="6 5"
-          opacity={l.active ? 1 : 1}
         />
       ))}
     </svg>
@@ -326,6 +325,7 @@ export default function MapScreen() {
                       type={node.type}
                       state={state}
                       isCurrent={node.id === visualCurrentId}
+                      bossLeaderId={node.type === 'boss' ? ACT_BOSS[act] : undefined}
                       onClick={() => handleNodeClick(node)}
                     />
                   </div>

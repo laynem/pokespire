@@ -44,7 +44,7 @@ export default function GameOverScreen() {
 
       <div className="flex flex-col gap-3 w-48">
         <button
-          onClick={() => navigate('/character-select')}
+          onClick={() => { endRun(); navigate('/character-select'); }}
           className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-3 px-6 rounded-lg transition"
         >
           Try Again

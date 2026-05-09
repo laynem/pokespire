@@ -7,6 +7,7 @@ import CombatScreen from './screens/CombatScreen';
 import GameOverScreen from './screens/GameOverScreen';
 import VictoryScreen from './screens/VictoryScreen';
 import RewardScreen from './screens/RewardScreen';
+import CatchScreen from './screens/CatchScreen';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/combat" element={<CombatScreen />} />
         <Route path="/game-over" element={<GameOverScreen />} />
         <Route path="/reward" element={<RewardScreen />} />
+        <Route path="/catch" element={<CatchScreen />} />
         <Route path="/victory" element={<VictoryScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -15,7 +15,7 @@ const NODE_ROUTE: Record<NodeType, string> = {
   combat:   '/combat',
   elite:    '/combat',
   boss:     '/combat',
-  treasure: '/combat',   // placeholder until Issue #8
+  treasure: '/catch',
   rest:     '/map',      // placeholder until Issue #10
   shop:     '/map',      // placeholder until Issue #10
   event:    '/combat',

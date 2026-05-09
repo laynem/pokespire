@@ -11,10 +11,9 @@ export function getPokemonSpriteUrl(pokemonId: number, shiny = false): string {
 }
 
 export function usePokemonSprite(pokemonId: number | null) {
-  const [spriteUrl, setSpriteUrl] = useState<string | null>(
-    pokemonId !== null ? (spriteCache.get(pokemonId) ?? null) : null
-  );
-  const [loading, setLoading] = useState(false);
+  const cached = pokemonId !== null ? (spriteCache.get(pokemonId) ?? null) : null;
+  const [spriteUrl, setSpriteUrl] = useState<string | null>(cached);
+  const [loading, setLoading] = useState(pokemonId !== null && cached === null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

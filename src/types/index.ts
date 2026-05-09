@@ -33,7 +33,7 @@ export interface Pokemon {
   maxHp: number;
   level: number;
   moves: Move[];
-  status?: 'burn' | 'freeze' | 'paralysis' | 'poison' | 'sleep' | null;
+  status: 'burn' | 'freeze' | 'paralysis' | 'poison' | 'sleep' | null;
   sprite?: string;
 }
 

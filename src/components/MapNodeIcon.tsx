@@ -60,6 +60,14 @@ export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, onCl
             className="w-full h-full object-cover object-top rounded-full"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
+        ) : type === 'treasure' ? (
+          <svg viewBox="0 0 100 100" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
+            <path d="M 4 50 A 46 46 0 0 1 96 50 Z" fill="#ef4444"/>
+            <rect x="4" y="46" width="92" height="8" fill="#1a1a1a"/>
+            <circle cx="50" cy="50" r="13" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
+            <circle cx="50" cy="50" r="5" fill="#e5e7eb"/>
+          </svg>
         ) : (
           meta.icon
         )}

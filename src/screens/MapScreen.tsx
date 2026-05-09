@@ -275,11 +275,21 @@ export default function MapScreen() {
         <div className="px-3 py-2 border-t border-white/10">
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-1.5">Legend</p>
           <div className="flex flex-col gap-1">
-            {(['combat', 'elite', 'boss', 'treasure', 'rest', 'shop', 'event'] as NodeType[]).map((t) => {
-              const { icon, label } = NODE_META[t];
+            {(['combat', 'treasure', 'rest', 'shop'] as NodeType[]).map((t) => {
+              const { label } = NODE_META[t];
               return (
                 <span key={t} className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <span>{icon}</span><span>{label}</span>
+                  {t === 'treasure' ? (
+                    <svg viewBox="0 0 100 100" className="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="50" cy="50" r="46" fill="white" stroke="#6b7280" strokeWidth="8"/>
+                      <path d="M 4 50 A 46 46 0 0 1 96 50 Z" fill="#ef4444"/>
+                      <rect x="4" y="44" width="92" height="12" fill="#374151"/>
+                      <circle cx="50" cy="50" r="13" fill="white" stroke="#374151" strokeWidth="7"/>
+                    </svg>
+                  ) : (
+                    <span>{NODE_META[t].icon}</span>
+                  )}
+                  <span>{label}</span>
                 </span>
               );
             })}

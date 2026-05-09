@@ -1,0 +1,51 @@
+import type { Pokemon, Move } from '../types';
+import { POKEMON_TEMPLATES } from '../data/pokemon';
+import { MOVES } from '../data/moves';
+import { getMovesAtLevel } from '../data/learnsets';
+
+function calcStat(base: number, level: number): number {
+  return Math.floor((2 * base * level) / 100) + 5;
+}
+
+function calcHp(base: number, level: number): number {
+  return Math.floor((2 * base * level) / 100) + level + 10;
+}
+
+// Returns up to 4 moves learnable at the given level (most recently learned)
+function selectMoves(pokemonId: number, level: number): Move[] {
+  const moveIds = getMovesAtLevel(pokemonId, level);
+  const tail = moveIds.slice(-4);
+  return tail
+    .map((id) => MOVES[id])
+    .filter((m): m is Move => m !== undefined);
+}
+
+export function buildPokemon(pokemonId: number, level: number): Pokemon {
+  const template = POKEMON_TEMPLATES[pokemonId];
+  if (!template) throw new Error(`Unknown Pokémon id: ${pokemonId}`);
+
+  const maxHp = calcHp(template.baseStats.hp, level);
+  const moves = selectMoves(pokemonId, level);
+
+  return {
+    id: template.id,
+    name: template.name,
+    types: template.types,
+    baseStats: template.baseStats,
+    currentHp: maxHp,
+    maxHp,
+    level,
+    moves,
+    status: null,
+    sprite: template.sprite,
+  };
+}
+
+export function getStarterOptions(): Array<{ id: number; name: string }> {
+  return [
+    { id: 1, name: 'Bulbasaur' },
+    { id: 4, name: 'Charmander' },
+    { id: 7, name: 'Squirtle' },
+    { id: 25, name: 'Pikachu' },
+  ];
+}

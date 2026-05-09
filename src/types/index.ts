@@ -45,7 +45,7 @@ export interface Trainer {
   starterPokemonId: number;
 }
 
-export type NodeType = 'combat' | 'elite' | 'boss' | 'rest' | 'shop' | 'event' | 'treasure';
+export type NodeType = 'combat' | 'elite' | 'boss' | 'rest' | 'shop' | 'event' | 'treasure' | 'home';
 
 export interface MapNode {
   id: string;

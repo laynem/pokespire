@@ -8,9 +8,16 @@ import type { MapNode, NodeType, PokemonType } from '../types';
 import logo from '../assets/logo.png';
 
 const ACT_THEMES = {
-  1: { bg: 'bg-green-950',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
-  2: { bg: 'bg-slate-950',  title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
-  3: { bg: 'bg-zinc-950',   title: 'Viridian City', subtitle: 'Final approach to the Gym' },
+  1: { bg: 'bg-green-800',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
+  2: { bg: 'bg-slate-900',  title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
+  3: { bg: 'bg-zinc-900',   title: 'Viridian City', subtitle: 'Final approach to the Gym' },
+};
+
+// Per-act CSS texture overlaid on the map canvas
+const ACT_TEXTURE: Record<number, string> = {
+  1: 'repeating-linear-gradient(0deg, rgba(0,60,0,0.25) 0px, rgba(0,60,0,0.25) 2px, transparent 2px, transparent 20px)',
+  2: 'repeating-linear-gradient(60deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 18px)',
+  3: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 22px)',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -23,6 +30,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const NODE_ROUTE: Record<NodeType, string> = {
+  home:     '/',
   combat:   '/combat',
   elite:    '/combat',
   boss:     '/combat',
@@ -33,7 +41,7 @@ const NODE_ROUTE: Record<NodeType, string> = {
 };
 
 const COL_X = [0.2, 0.5, 0.8];
-const ROW_HEIGHT = 90;
+const ROW_HEIGHT = 120;
 
 interface NodePos { id: string; x: number; y: number }
 
@@ -78,10 +86,10 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
         <line
           key={i}
           x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-          stroke={l.active ? '#facc15' : '#374151'}
+          stroke={l.active ? '#facc15' : 'rgba(255,255,255,0.35)'}
           strokeWidth={l.active ? 2.5 : 1.5}
-          strokeDasharray={l.active ? undefined : '5 5'}
-          opacity={l.active ? 0.9 : 0.35}
+          strokeDasharray="6 5"
+          opacity={l.active ? 1 : 1}
         />
       ))}
     </svg>
@@ -129,6 +137,10 @@ export default function MapScreen() {
   const rows = Array.from(new Set(currentMap.map((n) => n.row))).sort((a, b) => a - b);
   const totalRows = rows.length;
   const svgHeight = totalRows * ROW_HEIGHT + 56;
+
+  // Home node = visual "you are here" when no node has been chosen yet
+  const homeNode = currentMap.find((n) => n.type === 'home');
+  const visualCurrentId = currentNodeId ?? homeNode?.id ?? null;
 
   function nodeState(node: MapNode): 'cleared' | 'available' | 'locked' {
     if (node.cleared) return 'cleared';
@@ -226,10 +238,10 @@ export default function MapScreen() {
 
       {/* ── Map Canvas ───────────────────────────────────────────── */}
       <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
-        {/* Dot-grid background */}
+        {/* Act-themed texture */}
         <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage: ACT_TEXTURE[act] ?? ACT_TEXTURE[1] }}
         />
 
         {/* Inner canvas sized to fit all nodes */}
@@ -256,7 +268,7 @@ export default function MapScreen() {
                     <MapNodeIcon
                       type={node.type}
                       state={state}
-                      isCurrent={node.id === currentNodeId}
+                      isCurrent={node.id === visualCurrentId}
                       onClick={() => handleNodeClick(node)}
                     />
                   </div>

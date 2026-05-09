@@ -97,6 +97,18 @@ export function generateMap(seed: number, act: number): MapNode[] {
     }
   }
 
+  // Prepend a home node at row -1 (pre-cleared start marker)
+  const homeId = `a${act}r-1c0`;
+  nodes.unshift({
+    id: homeId,
+    type: 'home',
+    act,
+    row: -1,
+    col: 0,
+    connections: [...grid[0]],
+    cleared: true,
+  });
+
   return nodes;
 }
 

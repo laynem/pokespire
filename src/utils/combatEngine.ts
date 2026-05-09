@@ -1,4 +1,4 @@
-import type { Pokemon, Move } from '../types';
+import type { Pokemon, Move, Item } from '../types';
 import { getMultiplier } from './typeChart';
 
 export function getEnergyCost(move: Move): number {
@@ -25,6 +25,10 @@ export interface CombatState {
   phase: 'player' | 'enemy' | 'switch' | 'victory' | 'defeat';
   enemyIntent: Move | null;
   log: string[];
+  items: Item[];                    // run items (Lum Berry removed when consumed)
+  combatUsedItems: string[];        // IDs used once-per-combat (Oran Berry)
+  movesPlayedThisTurn: number;      // for Choice Band first-move bonus
+  enemyFlinched: boolean;           // Kings Rock flinch
 }
 
 // Build a shuffled deck: each move repeated min(pp,3) times
@@ -50,6 +54,10 @@ function stageMultiplier(stage: number): number {
   const clamp = Math.max(-2, Math.min(2, stage));
   const table: Record<number, number> = { '-2': 0.5, '-1': 0.67, 0: 1, 1: 1.5, 2: 2 };
   return table[clamp] ?? 1;
+}
+
+function hasItem(items: Item[], id: string): boolean {
+  return items.some((i) => i.id === id);
 }
 
 export function toCombatPokemon(p: Pokemon): CombatPokemon {
@@ -81,6 +89,7 @@ export function calcDamage(
   attacker: CombatPokemon,
   defender: CombatPokemon,
   multiplier: number,
+  choiceBandBonus = false,
 ): number {
   if (move.power === 0) return 0;
   const atkBase = move.category === 'special' ? attacker.baseStats.spAtk : attacker.baseStats.attack;
@@ -88,11 +97,12 @@ export function calcDamage(
   const atk = atkBase * stageMultiplier(attacker.statStages.attack);
   const def = defBase * stageMultiplier(defender.statStages.defense);
   const roll = 0.85 + Math.random() * 0.15;
-  const raw = Math.floor((move.power * atk) / Math.max(def, 1) * roll * multiplier);
+  const bandMult = choiceBandBonus ? 1.25 : 1;
+  const raw = Math.floor((move.power * atk) / Math.max(def, 1) * roll * multiplier * bandMult);
   return Math.max(1, raw);
 }
 
-// --- Status tick (applied at start of the afflicted Pokemon's turn) ---
+// --- Status tick ---
 export function tickStatus(
   pokemon: CombatPokemon,
   log: string[],
@@ -119,7 +129,6 @@ export function tickStatus(
   if (pokemon.status === 'sleep') {
     log.push(`${pokemon.name} is fast asleep!`);
     skip = true;
-    // 33% chance to wake up each turn
     if (Math.random() < 0.33) {
       log.push(`${pokemon.name} woke up!`);
       return { pokemon: { ...pokemon, currentHp: newHp, status: null }, skip: false };
@@ -168,31 +177,50 @@ export function applyMoveEffect(
     log.push(`${defender.name}'s Attack fell!`);
     return { attacker, defender: { ...defender, statStages: { ...defender.statStages, attack: newStage } } };
   }
-
   if (move.effect === 'lower_defense') {
     const newStage = Math.max(-2, defender.statStages.defense - 1);
     log.push(`${defender.name}'s Defense fell!`);
     return { attacker, defender: { ...defender, statStages: { ...defender.statStages, defense: newStage } } };
   }
-
   if (move.effect === 'raise_defense') {
     const newStage = Math.min(2, attacker.statStages.defense + 1);
     log.push(`${attacker.name}'s Defense rose!`);
     return { attacker: { ...attacker, statStages: { ...attacker.statStages, defense: newStage } }, defender };
   }
-
   if (move.effect === 'block') {
     const blockGain = 8;
     log.push(`${attacker.name} braced itself! (+${blockGain} Block)`);
     return { attacker: { ...attacker, block: attacker.block + blockGain }, defender };
   }
-
   if (move.effect === 'priority') {
     log.push(`${attacker.name} struck first!`);
     return { attacker, defender };
   }
 
   return { attacker, defender };
+}
+
+// --- Oran Berry: trigger when pokemon drops below 50% HP ---
+function applyOranBerry(
+  pokemon: CombatPokemon,
+  items: Item[],
+  combatUsedItems: string[],
+  log: string[],
+): { pokemon: CombatPokemon; combatUsedItems: string[] } {
+  if (
+    hasItem(items, 'oran_berry') &&
+    !combatUsedItems.includes('oran_berry') &&
+    pokemon.currentHp > 0 &&
+    pokemon.currentHp < pokemon.maxHp * 0.5
+  ) {
+    const heal = Math.min(20, pokemon.maxHp - pokemon.currentHp);
+    log.push(`Oran Berry restored ${heal} HP to ${pokemon.name}!`);
+    return {
+      pokemon: { ...pokemon, currentHp: pokemon.currentHp + heal },
+      combatUsedItems: [...combatUsedItems, 'oran_berry'],
+    };
+  }
+  return { pokemon, combatUsedItems };
 }
 
 // --- Player plays a move card ---
@@ -204,6 +232,7 @@ export function playMove(
   const log = [...state.log];
   let player = state.playerParty[0];
   let enemy = state.enemy;
+  let { items, combatUsedItems, movesPlayedThisTurn, enemyFlinched } = state;
 
   // Spend PP
   const newPp = { ...player.currentPp, [move.id]: Math.max(0, (player.currentPp[move.id] ?? 0) - 1) };
@@ -224,7 +253,16 @@ export function playMove(
 
   // Damage
   if (move.power > 0 && multiplier > 0) {
-    let dmg = calcDamage(move, player, enemy, multiplier);
+    const choiceBand = hasItem(items, 'choice_band') && movesPlayedThisTurn === 0;
+    if (choiceBand) log.push('Choice Band: +25% damage!');
+
+    let dmg = calcDamage(move, player, enemy, multiplier, choiceBand);
+
+    // Quick Claw log (no speed system, just flavour)
+    if (hasItem(items, 'quick_claw') && movesPlayedThisTurn === 0 && Math.random() < 0.2) {
+      log.push(`${player.name} moved first! (Quick Claw)`);
+    }
+
     if (defender.block > 0) {
       const absorbed = Math.min(defender.block, dmg);
       dmg -= absorbed;
@@ -233,9 +271,26 @@ export function playMove(
     }
     defender = { ...defender, currentHp: Math.max(0, defender.currentHp - dmg) };
     log.push(`${player.name} used ${move.name}! (${dmg} dmg)`);
+
+    // Shell Bell: heal 5 if 40+ damage
+    if (hasItem(items, 'shell_bell') && dmg >= 40) {
+      const heal = Math.min(5, attacker.maxHp - attacker.currentHp);
+      if (heal > 0) {
+        attacker = { ...attacker, currentHp: attacker.currentHp + heal };
+        log.push(`Shell Bell healed ${attacker.name} ${heal} HP!`);
+      }
+    }
+
+    // Kings Rock: 10% flinch
+    if (hasItem(items, 'kings_rock') && Math.random() < 0.1) {
+      enemyFlinched = true;
+      log.push(`${defender.name} flinched!`);
+    }
   } else if (move.power === 0) {
     log.push(`${player.name} used ${move.name}!`);
   }
+
+  movesPlayedThisTurn += 1;
 
   // Effects
   const result = applyMoveEffect(move, attacker, defender, log);
@@ -251,6 +306,10 @@ export function playMove(
     playerHand: newHand,
     playerDiscard: [...state.playerDiscard, move],
     playerEnergy: state.playerEnergy - energyCost,
+    items,
+    combatUsedItems,
+    movesPlayedThisTurn,
+    enemyFlinched,
     log,
   };
 }
@@ -267,12 +326,20 @@ export function executeEnemyTurn(state: CombatState): CombatState {
   const log = [...state.log];
   let enemy = state.enemy;
   let player = state.playerParty[0];
+  let { items, combatUsedItems, enemyFlinched } = state;
 
   // Tick enemy status
   const enemyTick = tickStatus(enemy, log);
   enemy = enemyTick.pokemon;
 
-  if (!enemyTick.skip && state.enemyIntent) {
+  const shouldAct = !enemyTick.skip && !enemyFlinched && state.enemyIntent;
+
+  if (enemyFlinched) {
+    log.push(`${enemy.name} flinched and couldn't move!`);
+    enemyFlinched = false;
+  }
+
+  if (shouldAct && state.enemyIntent) {
     const move = state.enemyIntent;
     const newPp = { ...enemy.currentPp, [move.id]: Math.max(0, (enemy.currentPp[move.id] ?? 0) - 1) };
     enemy = { ...enemy, currentPp: newPp };
@@ -291,6 +358,11 @@ export function executeEnemyTurn(state: CombatState): CombatState {
       }
       player = { ...player, currentHp: Math.max(0, player.currentHp - dmg) };
       log.push(`${enemy.name} used ${move.name}! (${dmg} dmg)`);
+
+      // Oran Berry: trigger if player drops below 50%
+      const oranResult = applyOranBerry(player, items, combatUsedItems, log);
+      player = oranResult.pokemon;
+      combatUsedItems = oranResult.combatUsedItems;
     } else {
       log.push(`${enemy.name} used ${move.name}!`);
     }
@@ -306,25 +378,47 @@ export function executeEnemyTurn(state: CombatState): CombatState {
 
   const newParty = [player, ...state.playerParty.slice(1)];
 
-  return { ...state, playerParty: newParty, enemy, enemyIntent: nextIntent, log };
+  return { ...state, playerParty: newParty, enemy, enemyIntent: nextIntent, items, combatUsedItems, enemyFlinched, log };
 }
 
 // --- Start of player turn: draw + energy regen ---
 export function startPlayerTurn(state: CombatState): CombatState {
   const log = [...state.log, `--- Turn ${state.turn + 1} ---`];
-  const player = state.playerParty[0];
+  let player = state.playerParty[0];
+  let { items, combatUsedItems } = state;
+
+  // Poke Flute: cure sleep before status tick
+  if (hasItem(items, 'poke_flute') && player.status === 'sleep') {
+    player = { ...player, status: null };
+    log.push(`Poké Flute woke up ${player.name}!`);
+  }
 
   // Tick player status + reset block
   const playerTick = tickStatus(player, log);
   const resetPlayer = { ...playerTick.pokemon, block: 0 };
   const newPartyReset = [resetPlayer, ...state.playerParty.slice(1)];
 
+  // Leftovers: heal 5 HP at turn start
+  let finalParty = newPartyReset;
+  if (hasItem(items, 'leftovers')) {
+    const active = finalParty[0];
+    const heal = Math.min(5, active.maxHp - active.currentHp);
+    if (heal > 0) {
+      finalParty = [{ ...active, currentHp: active.currentHp + heal }, ...finalParty.slice(1)];
+      log.push(`Leftovers restored ${heal} HP to ${active.name}!`);
+    }
+  }
+
   let next: CombatState = {
     ...state,
-    playerParty: newPartyReset,
+    playerParty: finalParty,
     playerEnergy: 3,
     turn: state.turn + 1,
     phase: playerTick.skip ? 'enemy' : 'player',
+    items,
+    combatUsedItems,
+    movesPlayedThisTurn: 0,
+    enemyFlinched: false,
     log,
   };
 
@@ -343,10 +437,19 @@ export function restorePartyPp(party: CombatPokemon[]): CombatPokemon[] {
 }
 
 // --- Init combat ---
-export function initCombat(party: Pokemon[], enemy: Pokemon): CombatState {
-  const combatParty = party.map(toCombatPokemon);
+export function initCombat(party: Pokemon[], enemy: Pokemon, items: Item[] = []): CombatState {
+  let combatParty = party.map(toCombatPokemon);
   const combatEnemy = toCombatPokemon(enemy);
   const deck = buildDeck(combatParty[0]);
+  let updatedItems = [...items];
+  const log: string[] = ['Battle start!'];
+
+  // Lum Berry: cure all status at start of combat, consume it
+  if (hasItem(updatedItems, 'lum_berry') && combatParty[0].status) {
+    combatParty = [{ ...combatParty[0], status: null }, ...combatParty.slice(1)];
+    updatedItems = updatedItems.filter((i) => i.id !== 'lum_berry');
+    log.push(`Lum Berry cured ${combatParty[0].name}'s status!`);
+  }
 
   const base: CombatState = {
     playerParty: combatParty,
@@ -358,7 +461,11 @@ export function initCombat(party: Pokemon[], enemy: Pokemon): CombatState {
     turn: 0,
     phase: 'player',
     enemyIntent: pickEnemyMove(combatEnemy),
-    log: ['Battle start!'],
+    log,
+    items: updatedItems,
+    combatUsedItems: [],
+    movesPlayedThisTurn: 0,
+    enemyFlinched: false,
   };
 
   return drawCards(base, 4);

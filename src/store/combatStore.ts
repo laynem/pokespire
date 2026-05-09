@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Pokemon, Move } from '../types';
+import type { Pokemon, Move, Item } from '../types';
 import {
   type CombatState,
   type CombatPokemon,
@@ -15,7 +15,7 @@ import {
 } from '../utils/combatEngine';
 
 interface CombatActions {
-  startCombat: (party: Pokemon[], enemy: Pokemon) => void;
+  startCombat: (party: Pokemon[], enemy: Pokemon, items?: Item[]) => void;
   playCard: (move: Move) => void;
   endTurn: () => void;
   switchPokemon: (index: number) => void;
@@ -35,13 +35,17 @@ const DEFAULT_STATE: CombatState = {
   phase: 'player',
   enemyIntent: null,
   log: [],
+  items: [],
+  combatUsedItems: [],
+  movesPlayedThisTurn: 0,
+  enemyFlinched: false,
 };
 
 export const useCombatStore = create<CombatStore>((set, get) => ({
   ...DEFAULT_STATE,
 
-  startCombat: (party, enemy) => {
-    const state = initCombat(party, enemy);
+  startCombat: (party, enemy, items = []) => {
+    const state = initCombat(party, enemy, items);
     set(state);
   },
 

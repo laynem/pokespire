@@ -61,6 +61,7 @@ export interface Item {
   id: string;
   name: string;
   description: string;
+  icon: string;
   category: 'held' | 'consumable' | 'keyitem';
   effect?: Record<string, unknown>;
 }

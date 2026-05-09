@@ -12,6 +12,7 @@ interface RunActions {
   addItem: (item: Item) => void;
   removeItem: (itemId: string) => void;
   updateParty: (party: Pokemon[]) => void;
+  updateItems: (items: Item[]) => void;
   addMoveToParty: (pokemonIndex: number, move: Move) => void;
   addBadge: (badge: string) => void;
   incrementPokemonCaught: () => void;
@@ -89,6 +90,7 @@ export const useRunStore = create<RunState & RunActions>()(
         set((state) => ({ items: state.items.filter((i) => i.id !== itemId) })),
 
       updateParty: (party) => set({ party }),
+      updateItems: (items) => set({ items }),
 
       addMoveToParty: (pokemonIndex, move) =>
         set((state) => {

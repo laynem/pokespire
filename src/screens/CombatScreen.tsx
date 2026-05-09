@@ -9,6 +9,19 @@ import { buildPokemon } from '../utils/pokemonFactory';
 import type { CombatPokemon } from '../utils/combatEngine';
 import type { Move } from '../types';
 
+function ItemTray({ items }: { items: { id: string; name: string; icon: string; description: string }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {items.map((item) => (
+        <span key={item.id} title={`${item.name}: ${item.description}`} className="text-lg cursor-default">
+          {item.icon}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const STATUS_BADGE: Record<string, string> = {
   burn: '🔥 BRN',
   poison: '☠️ PSN',
@@ -61,7 +74,7 @@ function EnergyPips({ current, max = 3 }: { current: number; max?: number }) {
 
 export default function CombatScreen() {
   const navigate = useNavigate();
-  const { party, currentNodeId, clearNode, updateParty } = useRunStore();
+  const { party, items: runItems, currentNodeId, clearNode, updateParty, updateItems } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
   const [lastLog, setLastLog] = useState<string[]>([]);
@@ -69,11 +82,10 @@ export default function CombatScreen() {
   // Init combat on mount if not already started
   useEffect(() => {
     if (combat.playerParty.length === 0 && party.length > 0) {
-      // Spawn a wild Pokémon based on act (simple: random level 5-10)
       const wildId = [1, 4, 7, 25][Math.floor(Math.random() * 4)];
       const wildLevel = 3 + Math.floor(Math.random() * 5);
       const enemy = buildPokemon(wildId, wildLevel);
-      combat.startCombat(party, enemy);
+      combat.startCombat(party, enemy, runItems);
     }
   }, []); // eslint-disable-line
 
@@ -92,7 +104,10 @@ export default function CombatScreen() {
           updateParty(restored);
         }
         if (currentNodeId) clearNode(currentNodeId);
-        const gold = 10 + Math.floor(Math.random() * 11); // 10–20g wild battle
+        // Sync items back (Lum Berry may have been consumed)
+        if (updateItems) updateItems(combat.items);
+        let gold = 10 + Math.floor(Math.random() * 11);
+        if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
         combat.clearCombat();
         navigate('/reward', { state: { gold } });
       }, 1500);
@@ -143,6 +158,14 @@ export default function CombatScreen() {
 
       {/* Player */}
       <PokemonPanel pokemon={activePlayer} isPlayer={true} />
+
+      {/* Item tray */}
+      {runItems.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Items:</span>
+          <ItemTray items={runItems} />
+        </div>
+      )}
 
       {/* Energy + actions */}
       <div className="flex items-center justify-between">

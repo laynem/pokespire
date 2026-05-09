@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
 import { getEnergyCost } from '../utils/combatEngine';
 import MoveCard from '../components/MoveCard';
-import type { Move } from '../types';
+import type { Move, Pokemon } from '../types';
 
 interface RewardState {
   gold: number;
@@ -20,71 +20,101 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function getDraftMoves(pokemon: Pokemon): Move[] {
+  const learnset = LEARNSETS[pokemon.id] ?? [];
+  const knownIds = new Set(pokemon.moves.map((m) => m.id));
+  const pool = learnset
+    .map((e) => MOVES[e.moveId])
+    .filter((m): m is Move => !!m && !knownIds.has(m.id));
+  const seen = new Set<string>();
+  const unique = pool.filter((m) => (seen.has(m.id) ? false : seen.add(m.id) && true));
+  return shuffle(unique).slice(0, 3);
+}
+
 export default function RewardScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { gold: goldEarned } = (location.state as RewardState) ?? { gold: 15 };
 
-  const { party, addGold, addMoveToParty, incrementMovesLearned } = useRunStore();
-  const activePokemon = party[0];
+  const { party, items, addGold, addMoveToParty, incrementMovesLearned } = useRunStore();
+  const hasExpShare = items.some((i) => i.id === 'exp_share');
+
+  // With Exp Share, draft for each party member in sequence; otherwise just active
+  const draftTargets = hasExpShare ? party : party.slice(0, 1);
+  const [draftIndex, setDraftIndex] = useState(0);
+
+  const currentTarget = draftTargets[draftIndex] ?? null;
 
   const draftMoves = useMemo<Move[]>(() => {
-    if (!activePokemon) return [];
-    const learnset = LEARNSETS[activePokemon.id] ?? [];
-    const knownIds = new Set(activePokemon.moves.map((m) => m.id));
-    const pool = learnset
-      .map((e) => MOVES[e.moveId])
-      .filter((m): m is Move => !!m && !knownIds.has(m.id));
-    // deduplicate by id
-    const seen = new Set<string>();
-    const unique = pool.filter((m) => (seen.has(m.id) ? false : seen.add(m.id) && true));
-    return shuffle(unique).slice(0, 3);
-  }, [activePokemon?.id]); // eslint-disable-line
+    if (!currentTarget) return [];
+    return getDraftMoves(currentTarget);
+  }, [currentTarget?.id, draftIndex]); // eslint-disable-line
 
-  const bonusGold = draftMoves.length === 0 ? 10 : 0;
+  const isFirstDraft = draftIndex === 0;
+  const bonusGold = isFirstDraft && draftMoves.length === 0 ? 10 : 0;
   const totalGold = goldEarned + bonusGold;
 
+  const advanceOrFinish = () => {
+    if (isFirstDraft) addGold(totalGold);
+    const nextIndex = draftIndex + 1;
+    if (nextIndex < draftTargets.length) {
+      setDraftIndex(nextIndex);
+    } else {
+      navigate('/map');
+    }
+  };
+
   const handlePickMove = (move: Move) => {
-    addMoveToParty(0, move);
+    const partyIndex = party.findIndex((p) => p.id === currentTarget?.id && p.name === currentTarget?.name);
+    if (partyIndex >= 0) addMoveToParty(partyIndex, move);
     incrementMovesLearned();
-    addGold(totalGold);
-    navigate('/map');
+    advanceOrFinish();
   };
 
   const handleSkip = () => {
-    addGold(totalGold);
-    navigate('/map');
+    advanceOrFinish();
   };
 
-  if (!activePokemon) {
+  if (!party[0]) {
     navigate('/map');
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-6 max-w-lg mx-auto">
-      <div className="text-center">
-        <p className="text-4xl mb-2">🏆</p>
-        <h2 className="text-2xl font-bold text-yellow-400">Victory!</h2>
-      </div>
+      {isFirstDraft && (
+        <>
+          <div className="text-center">
+            <p className="text-4xl mb-2">🏆</p>
+            <h2 className="text-2xl font-bold text-yellow-400">Victory!</h2>
+          </div>
 
-      {/* Gold earned */}
-      <div className="bg-gray-800 border border-yellow-600/40 rounded-xl px-6 py-4 flex items-center gap-4 w-full">
-        <span className="text-3xl">💰</span>
-        <div>
-          <p className="text-sm text-gray-400">Gold earned</p>
-          <p className="text-2xl font-bold text-yellow-400">+{totalGold}g</p>
-          {bonusGold > 0 && (
-            <p className="text-xs text-gray-400 mt-0.5">+{bonusGold}g bonus — no new moves to learn!</p>
-          )}
-        </div>
-      </div>
+          {/* Gold earned */}
+          <div className="bg-gray-800 border border-yellow-600/40 rounded-xl px-6 py-4 flex items-center gap-4 w-full">
+            <span className="text-3xl">💰</span>
+            <div>
+              <p className="text-sm text-gray-400">Gold earned</p>
+              <p className="text-2xl font-bold text-yellow-400">+{totalGold}g</p>
+              {bonusGold > 0 && (
+                <p className="text-xs text-gray-400 mt-0.5">+{bonusGold}g bonus — no new moves!</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Exp Share indicator */}
+      {hasExpShare && draftTargets.length > 1 && (
+        <p className="text-xs text-blue-400 text-center">
+          🔗 Exp. Share — picking for {currentTarget?.name ?? '…'} ({draftIndex + 1}/{draftTargets.length})
+        </p>
+      )}
 
       {/* Move draft */}
-      {draftMoves.length > 0 ? (
+      {currentTarget && draftMoves.length > 0 ? (
         <div className="w-full flex flex-col gap-4">
           <p className="text-center text-sm text-gray-400">
-            Choose a move to add to <span className="text-white font-semibold">{activePokemon.name}</span>'s deck
+            Choose a move for <span className="text-white font-semibold">{currentTarget.name}</span>
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             {draftMoves.map((move) => (
@@ -103,7 +133,7 @@ export default function RewardScreen() {
             onClick={handleSkip}
             className="text-gray-500 hover:text-gray-300 text-sm transition text-center"
           >
-            Skip — take gold only
+            Skip
           </button>
         </div>
       ) : (

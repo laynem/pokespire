@@ -92,7 +92,7 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
 
 export default function MapScreen() {
   const navigate = useNavigate();
-  const { currentMap, currentNodeId, act, seed, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
+  const { currentMap, currentNodeId, act, seed, items, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(320);
 
@@ -148,12 +148,23 @@ export default function MapScreen() {
           <h2 className="text-xl font-bold text-yellow-400">Act {act} — {theme.title}</h2>
           <p className="text-xs text-gray-400">{theme.subtitle}</p>
         </div>
-        <button
-          onClick={() => { endRun(); navigate('/'); }}
-          className="text-gray-600 hover:text-red-400 text-xs transition"
-        >
-          Abandon
-        </button>
+        <div className="flex items-center gap-2">
+          {items.length > 0 && (
+            <div className="flex gap-0.5">
+              {items.map((item) => (
+                <span key={item.id} title={`${item.name}: ${item.description}`} className="text-base cursor-default">
+                  {item.icon}
+                </span>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => { endRun(); navigate('/'); }}
+            className="text-gray-600 hover:text-red-400 text-xs transition"
+          >
+            Abandon
+          </button>
+        </div>
       </div>
 
       {/* Map canvas */}

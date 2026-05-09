@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HomeScreen from './screens/HomeScreen';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import StarterSelectScreen from './screens/StarterSelectScreen';
@@ -12,9 +12,10 @@ import CatchScreen from './screens/CatchScreen';
 import PokemonCenterScreen from './screens/PokemonCenterScreen';
 import PokeMartScreen from './screens/PokeMartScreen';
 
-export default function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <BrowserRouter>
+    <div key={location.pathname} className="animate-fade-in">
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/character-select" element={<CharacterSelectScreen />} />
@@ -30,6 +31,14 @@ export default function App() {
         <Route path="/victory" element={<VictoryScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }

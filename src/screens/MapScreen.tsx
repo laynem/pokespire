@@ -198,6 +198,7 @@ export default function MapScreen() {
                   <MapNodeIcon
                     type={node.type}
                     state={state}
+                    isCurrent={node.id === currentNodeId}
                     onClick={() => handleNodeClick(node)}
                   />
                 </div>

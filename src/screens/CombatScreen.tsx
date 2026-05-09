@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCombatStore, getRestoredParty } from '../store/combatStore';
 import { useRunStore } from '../store/runStore';
@@ -9,6 +9,8 @@ import { buildPokemon } from '../utils/pokemonFactory';
 import { GYM_LEADERS } from '../data/gymLeaders';
 import type { CombatPokemon } from '../utils/combatEngine';
 import type { Move } from '../types';
+
+// ---- sub-components ----
 
 function ItemTray({ items }: { items: { id: string; name: string; icon: string; description: string }[] }) {
   if (items.length === 0) return null;
@@ -36,19 +38,60 @@ function HpBar({ current, max, small }: { current: number; max: number; small?: 
   const color = pct > 50 ? 'bg-green-500' : pct > 20 ? 'bg-yellow-500' : 'bg-red-500';
   return (
     <div className={`w-full bg-gray-700 rounded-full ${small ? 'h-2' : 'h-3'}`}>
-      <div className={`${color} rounded-full h-full transition-all duration-300`} style={{ width: `${pct}%` }} />
+      <div className={`${color} rounded-full h-full transition-all duration-500`} style={{ width: `${pct}%` }} />
     </div>
   );
 }
 
-function PokemonPanel({ pokemon, isPlayer }: { pokemon: CombatPokemon; isPlayer: boolean }) {
-  const { spriteUrl } = usePokemonSprite(pokemon.id);
+interface FloatNum { id: number; value: number }
+
+function DamageFloat({ nums }: { nums: FloatNum[] }) {
   return (
-    <div className={`flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl p-3 ${isPlayer ? 'flex-row-reverse' : ''}`}>
-      {spriteUrl
-        ? <img src={spriteUrl} alt={pokemon.name} className="w-16 h-16 object-contain" style={{ imageRendering: 'pixelated' }} />
-        : <div className="w-16 h-16 flex items-center justify-center text-3xl">🔴</div>
-      }
+    <>
+      {nums.map((n) => (
+        <div
+          key={n.id}
+          className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-10 animate-float-up font-bold text-red-400 text-lg drop-shadow-lg select-none"
+        >
+          -{n.value}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function PokemonPanel({
+  pokemon, isPlayer, hitKey, fainting,
+}: {
+  pokemon: CombatPokemon;
+  isPlayer: boolean;
+  hitKey: number;
+  fainting?: boolean;
+  dmgNums?: FloatNum[];
+}) {
+  const { spriteUrl } = usePokemonSprite(pokemon.id);
+
+  const imgClass = [
+    'w-16 h-16 object-contain transition-all duration-300',
+    fainting ? 'animate-faint-fall' : '',
+  ].join(' ');
+
+  return (
+    <div className={`relative flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl p-3 ${isPlayer ? 'flex-row-reverse' : ''}`}>
+      <div className="relative flex-shrink-0">
+        {spriteUrl
+          ? (
+            <img
+              key={hitKey}
+              src={spriteUrl}
+              alt={pokemon.name}
+              className={`${imgClass} ${hitKey > 0 ? 'animate-flash-white' : ''}`}
+              style={{ imageRendering: 'pixelated' }}
+            />
+          )
+          : <div className="w-16 h-16 flex items-center justify-center text-3xl">🔴</div>
+        }
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-bold truncate">{pokemon.name}</span>
@@ -67,11 +110,15 @@ function EnergyPips({ current, max = 3 }: { current: number; max?: number }) {
     <div className="flex gap-1 items-center">
       <span className="text-xs text-gray-400 mr-1">Energy:</span>
       {Array.from({ length: max }).map((_, i) => (
-        <span key={i} className={`w-4 h-4 rounded-full ${i < current ? 'bg-blue-500' : 'bg-gray-700'}`} />
+        <span key={i} className={`w-4 h-4 rounded-full transition-colors duration-200 ${i < current ? 'bg-blue-500' : 'bg-gray-700'}`} />
       ))}
     </div>
   );
 }
+
+// ---- main screen ----
+
+let dmgIdCounter = 0;
 
 export default function CombatScreen() {
   const navigate = useNavigate();
@@ -81,10 +128,23 @@ export default function CombatScreen() {
   const [showSwitch, setShowSwitch] = useState(false);
   const [lastLog, setLastLog] = useState<string[]>([]);
 
+  // Animation state
+  const [enemyHitKey, setEnemyHitKey] = useState(0);
+  const [playerHitKey, setPlayerHitKey] = useState(0);
+  const [enemyDmgNums, setEnemyDmgNums] = useState<FloatNum[]>([]);
+  const [playerDmgNums, setPlayerDmgNums] = useState<FloatNum[]>([]);
+  const [superEffective, setSuperEffective] = useState(false);
+  const [playerFainting, setPlayerFainting] = useState(false);
+  const [enemyFainting, setEnemyFainting] = useState(false);
+
+  const prevEnemyHpRef = useRef<number | null>(null);
+  const prevPlayerHpRef = useRef<number | null>(null);
+  const prevEnemyIdRef = useRef<number | null>(null);
+
   const bossLeaderId = (location.state as { bossLeaderId?: string } | null)?.bossLeaderId ?? null;
   const isBoss = bossLeaderId !== null;
 
-  // Init combat on mount if not already started
+  // Init combat on mount
   useEffect(() => {
     if (combat.playerParty.length === 0 && party.length > 0) {
       if (isBoss && bossLeaderId) {
@@ -107,22 +167,81 @@ export default function CombatScreen() {
     }
   }, []); // eslint-disable-line
 
+  // Detect enemy HP drop → shake + damage number
+  useEffect(() => {
+    if (!combat.enemy) return;
+    const cur = combat.enemy.currentHp;
+    const prev = prevEnemyHpRef.current;
+    const enemyId = combat.enemy.id;
+
+    if (prev !== null && prevEnemyIdRef.current === enemyId && cur < prev) {
+      const dmg = prev - cur;
+      setEnemyHitKey((k) => k + 1);
+      const id = ++dmgIdCounter;
+      setEnemyDmgNums((ns) => [...ns, { id, value: dmg }]);
+      setTimeout(() => setEnemyDmgNums((ns) => ns.filter((n) => n.id !== id)), 1100);
+    }
+
+    prevEnemyHpRef.current = cur;
+    prevEnemyIdRef.current = enemyId;
+  }, [combat.enemy?.currentHp, combat.enemy?.id]); // eslint-disable-line
+
+  // Detect player HP drop → shake + damage number
+  useEffect(() => {
+    if (!combat.playerParty[0]) return;
+    const cur = combat.playerParty[0].currentHp;
+    const prev = prevPlayerHpRef.current;
+
+    if (prev !== null && cur < prev) {
+      const dmg = prev - cur;
+      setPlayerHitKey((k) => k + 1);
+      const id = ++dmgIdCounter;
+      setPlayerDmgNums((ns) => [...ns, { id, value: dmg }]);
+      setTimeout(() => setPlayerDmgNums((ns) => ns.filter((n) => n.id !== id)), 1100);
+    }
+
+    prevPlayerHpRef.current = cur;
+  }, [combat.playerParty[0]?.currentHp]); // eslint-disable-line
+
+  // Detect "Super effective!" in log
+  useEffect(() => {
+    const latest = combat.log[combat.log.length - 1] ?? '';
+    if (latest === 'Super effective!') {
+      setSuperEffective(true);
+      setTimeout(() => setSuperEffective(false), 1200);
+    }
+  }, [combat.log]);
+
   // Track new log entries
   useEffect(() => {
     setLastLog(combat.log.slice(-5));
   }, [combat.log]);
 
+  // Faint animation before switch
+  useEffect(() => {
+    if (combat.phase === 'switch') {
+      setPlayerFainting(true);
+      setTimeout(() => setPlayerFainting(false), 600);
+    }
+  }, [combat.phase]);
+
+  // Detect enemy faint animation
+  useEffect(() => {
+    if (combat.enemy?.currentHp === 0) {
+      setEnemyFainting(true);
+      setTimeout(() => setEnemyFainting(false), 600);
+    }
+  }, [combat.enemy?.currentHp]); // eslint-disable-line
+
   // Handle phase transitions
   useEffect(() => {
     if (combat.phase === 'victory') {
       const timer = setTimeout(() => {
-        // Restore PP and update party in run store
         if (combat.playerParty.length > 0) {
           const restored = getRestoredParty(combat.playerParty);
           updateParty(restored);
         }
         if (currentNodeId) clearNode(currentNodeId);
-        // Sync items back (Lum Berry may have been consumed)
         if (updateItems) updateItems(combat.items);
         let gold = 10 + Math.floor(Math.random() * 11);
         if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
@@ -173,8 +292,20 @@ export default function CombatScreen() {
         </div>
       )}
 
-      {/* Enemy */}
-      <PokemonPanel pokemon={enemy} isPlayer={false} />
+      {/* Enemy panel + damage numbers */}
+      <div className="relative">
+        <PokemonPanel pokemon={enemy} isPlayer={false} hitKey={enemyHitKey} fainting={enemyFainting} />
+        <DamageFloat nums={enemyDmgNums} />
+      </div>
+
+      {/* Super effective flash */}
+      {superEffective && (
+        <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-40">
+          <span className="animate-super-effective text-yellow-300 font-extrabold text-3xl drop-shadow-lg tracking-wide">
+            Super effective!
+          </span>
+        </div>
+      )}
 
       {/* Enemy intent */}
       {combat.enemyIntent && (
@@ -196,8 +327,11 @@ export default function CombatScreen() {
         ))}
       </div>
 
-      {/* Player */}
-      <PokemonPanel pokemon={activePlayer} isPlayer={true} />
+      {/* Player panel + damage numbers */}
+      <div className="relative">
+        <PokemonPanel pokemon={activePlayer} isPlayer={true} hitKey={playerHitKey} fainting={playerFainting} />
+        <DamageFloat nums={playerDmgNums} />
+      </div>
 
       {/* Item tray */}
       {runItems.length > 0 && (
@@ -272,8 +406,8 @@ export default function CombatScreen() {
 
       {/* Phase overlay */}
       {(combat.phase === 'victory' || combat.phase === 'defeat') && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="text-center">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in">
+          <div className="text-center animate-bounce-in">
             <p className="text-5xl mb-3">{combat.phase === 'victory' ? '🏆' : '💀'}</p>
             <p className="text-2xl font-bold text-yellow-400">
               {combat.phase === 'victory' ? 'Victory!' : 'Defeated...'}
@@ -283,7 +417,7 @@ export default function CombatScreen() {
       )}
 
       {combat.phase === 'switch' && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-72 flex flex-col gap-3">
             <p className="font-bold text-yellow-400 text-center">Choose next Pokémon</p>
             {combat.playerParty.slice(1).map((p, i) => (

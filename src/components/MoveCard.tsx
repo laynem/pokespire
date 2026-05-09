@@ -46,7 +46,7 @@ export default function MoveCard({ move, energyCost, currentPp, maxCombatPp = 3,
   } else if (selected) {
     baseClasses.push('border-yellow-400 shadow-[0_0_10px_2px_rgba(250,204,21,0.5)] scale-105');
   } else {
-    baseClasses.push('border-gray-600 hover:scale-105 hover:border-yellow-400 hover:shadow-[0_0_10px_2px_rgba(250,204,21,0.4)]');
+    baseClasses.push('border-gray-600 hover:scale-105 hover:-translate-y-1 hover:border-yellow-400 hover:shadow-[0_0_16px_4px_rgba(250,204,21,0.5)]');
   }
 
   function handleClick() {

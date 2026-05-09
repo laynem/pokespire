@@ -5,6 +5,8 @@ import { buildPokemon, getStarterOptions } from '../utils/pokemonFactory';
 import { POKEMON_TEMPLATES } from '../data/pokemon';
 import { getStarterDeck } from '../data/starterDecks';
 import { useRunStore } from '../store/runStore';
+import MoveCard from '../components/MoveCard';
+import { getEnergyCost } from '../utils/combatEngine';
 import type { PokemonType } from '../types';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -114,24 +116,24 @@ export default function StarterSelectScreen() {
         ))}
       </div>
 
-      {/* Move detail panel */}
+      {/* Starting cards panel */}
       {selectedTemplate && (
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 w-full max-w-md flex flex-col gap-3">
-          <p className="font-bold text-yellow-400">{selectedTemplate.name} — Starting Moves</p>
-          {detailMoves.map((move) => (
-            <div key={move.id} className="flex flex-col gap-0.5 border-b border-gray-700 pb-2 last:border-0 last:pb-0">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-sm">{move.name}</span>
-                <TypeBadge type={move.type} />
-              </div>
-              <div className="flex gap-4 text-xs text-gray-400">
-                <span>Power: {move.power > 0 ? move.power : '—'}</span>
-                <span>Acc: {move.accuracy > 0 ? `${move.accuracy}%` : '—'}</span>
-                <span>PP: {move.pp}</span>
-              </div>
-              <p className="text-xs text-gray-500">{move.description}</p>
-            </div>
-          ))}
+        <div className="flex flex-col items-center gap-3 w-full max-w-2xl">
+          <p className="font-bold text-yellow-400 text-sm uppercase tracking-widest">
+            {selectedTemplate.name} — Starting Cards
+          </p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            {detailMoves.map((move) => (
+              <MoveCard
+                key={move.id}
+                move={move}
+                energyCost={getEnergyCost(move)}
+                currentPp={move.pp}
+                disabled={false}
+                onClick={() => {}}
+              />
+            ))}
+          </div>
         </div>
       )}
 

@@ -57,6 +57,35 @@ Claude has full credentials for all environments — do NOT ask the user for key
 5. Verify: `ssh ... "ls -lh /var/www/pokespire/"`
 - rsync not available locally — always use scp
 
+## PokéAPI
+
+**What it is:** Free, public, no-auth REST API for canonical Pokémon game data.
+**Base URL:** `https://pokeapi.co/api/v2/`
+**Docs:** https://pokeapi.co/
+
+### How to connect
+No API key required. Plain `fetch()` or `curl`. Rate limit: 100 req/min per IP (generous for one-time scripts).
+
+### What we pull
+One-time data migration script (`scripts/fetch-pokemon-data.mjs`). Run manually when pokemon data needs refreshing — **not at runtime**.
+
+| Endpoint | Data pulled | Used for |
+|---|---|---|
+| `/pokemon/{id}` | `name`, `types[].type.name`, `stats[]` (hp, attack, defense, special-attack, special-defense, speed) | `src/data/pokemon.ts` → `POKEMON_TEMPLATES` |
+
+**Sprites** are fetched at runtime (not from the migration script) via the PokeAPI GitHub CDN:
+`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png`
+This is handled in `src/hooks/usePokemon.ts`.
+
+### What we do NOT pull from the API
+- Moves — hand-authored in `src/data/moves.ts` (game-specific tuning)
+- Learnsets — hand-authored in `src/data/learnsets.ts`
+- Items, gym leaders, achievements — fully custom
+
+### Archive
+All pre-migration data + 46 sprites are preserved in `archive/` (committed 2026-05-11).
+Restore: copy `archive/data/*.ts` back to `src/data/`.
+
 ## Asset Safety
 - **Never delete any files in `src/assets/` or `public/` without explicit user approval.** Ask first, always.
 

@@ -1,10 +1,39 @@
 import type { Move } from '../types';
 
-const TYPE_SYMBOL: Record<string, string> = {
-  Normal: '⬜', Fire: '🔥', Water: '💧', Electric: '⚡', Grass: '🌿',
-  Ice: '❄️', Fighting: '👊', Poison: '☠️', Ground: '🌋', Flying: '🌪️',
-  Psychic: '🔮', Bug: '🐛', Rock: '🪨', Ghost: '👻', Dragon: '🐉',
-  Dark: '🌑', Steel: '⚙️', Fairy: '✨',
+import fireIcon from '../assets/fire.png';
+import waterIcon from '../assets/water.png';
+import electricIcon from '../assets/electric.png';
+import leafIcon from '../assets/leaf.png';
+import iceIcon from '../assets/ice.png';
+import fightingIcon from '../assets/fighting.png';
+import poisonIcon from '../assets/poison.png';
+import groundIcon from '../assets/ground.png';
+import flyingIcon from '../assets/flying.png';
+import psychicIcon from '../assets/psychic.png';
+import dragonIcon from '../assets/dragon.png';
+import darkIcon from '../assets/dark.png';
+import steelIcon from '../assets/steel.png';
+import fairyIcon from '../assets/fairy.png';
+
+const TYPE_ICON: Record<string, string> = {
+  Fire: fireIcon,
+  Water: waterIcon,
+  Electric: electricIcon,
+  Grass: leafIcon,
+  Ice: iceIcon,
+  Fighting: fightingIcon,
+  Poison: poisonIcon,
+  Ground: groundIcon,
+  Flying: flyingIcon,
+  Psychic: psychicIcon,
+  Dragon: dragonIcon,
+  Dark: darkIcon,
+  Steel: steelIcon,
+  Fairy: fairyIcon,
+};
+
+const TYPE_EMOJI: Record<string, string> = {
+  Normal: '🔘', Bug: '🐛', Rock: '🪨', Ghost: '👻',
 };
 
 const TYPE_GRADIENT: Record<string, { dark: string; mid: string }> = {
@@ -28,6 +57,16 @@ const TYPE_GRADIENT: Record<string, { dark: string; mid: string }> = {
   Fairy:    { dark: '#500724', mid: '#ec4899' },
 };
 
+function getCardInfo(move: Move): string {
+  if (move.effect === 'block') return '8 Block';
+  if (move.effect === 'recover') return '50% Heal';
+  if (move.category === 'status' || move.power === 0) {
+    if (move.effect) return move.effect.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return move.type;
+  }
+  return `${move.power} Damage`;
+}
+
 interface MoveCardProps {
   move: Move;
   energyCost: number;
@@ -38,15 +77,16 @@ interface MoveCardProps {
   onClick: () => void;
 }
 
-export default function MoveCard({ move, energyCost, currentPp, maxCombatPp = 3, disabled, selected, onClick }: MoveCardProps) {
-  const gradient = TYPE_GRADIENT[move.type] ?? { dark: '#374151', mid: '#6b7280' };
-  const symbol = TYPE_SYMBOL[move.type] ?? '⬜';
+// Bubble radius in px — half the bubble diameter (w-9 = 36px)
+const BUBBLE_R = 15;
 
+export default function MoveCard({ move, energyCost, disabled, selected, onClick }: MoveCardProps) {
+  const gradient = TYPE_GRADIENT[move.type] ?? { dark: '#374151', mid: '#6b7280' };
   const bg = `linear-gradient(180deg, ${gradient.dark} 0%, ${gradient.mid} 50%, ${gradient.dark} 100%)`;
 
-  function handleClick() {
-    if (!disabled) onClick();
-  }
+  const icon = TYPE_ICON[move.type];
+  const emoji = TYPE_EMOJI[move.type];
+  const cardInfo = getCardInfo(move);
 
   const borderClass = disabled
     ? 'border-gray-600'
@@ -61,47 +101,57 @@ export default function MoveCard({ move, energyCost, currentPp, maxCombatPp = 3,
       : 'cursor-pointer hover:scale-110';
 
   return (
+    /* Outer wrapper: adds space for the bubble that hangs outside the card */
     <div
-      className={`relative flex flex-col w-28 h-40 rounded-xl border-2 select-none transition-all duration-150 overflow-hidden ${borderClass} ${scaleClass}`}
-      style={{ background: bg }}
-      onClick={handleClick}
+      className="relative select-none"
+      style={{ paddingTop: BUBBLE_R, paddingLeft: BUBBLE_R }}
+      onClick={disabled ? undefined : onClick}
     >
-      {/* Top section: energy cost + name */}
-      <div className="flex items-start gap-1 px-2 pt-2 pb-1">
-        {/* Energy cost circle */}
-        <div className="shrink-0 w-6 h-6 rounded-full bg-black/60 border border-blue-400/60 flex items-center justify-center">
-          <span className="text-blue-300 text-xs font-bold leading-none">{energyCost}</span>
-        </div>
-        {/* Move name */}
-        <span className="text-white text-xs font-bold leading-tight flex-1 text-center pr-1 mt-0.5 drop-shadow">
-          {move.name}
-        </span>
+      {/* Energy bubble — centered on the card's top-left corner */}
+      <div
+        className="absolute z-10 rounded-full bg-black/80 border-2 border-blue-400 flex items-center justify-center shadow-lg"
+        style={{
+          width: BUBBLE_R * 2,
+          height: BUBBLE_R * 2,
+          top: 0,
+          left: 0,
+        }}
+      >
+        <span className="text-blue-300 text-sm font-bold leading-none">{energyCost}</span>
       </div>
 
-      {/* Art section: type symbol */}
-      <div className="flex-1 flex items-center justify-center">
-        <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{symbol}</span>
-      </div>
-
-      {/* Bottom section: description */}
-      <div className="px-2 pb-1">
-        <p className="text-gray-200/80 text-center leading-tight" style={{ fontSize: '0.6rem' }}>
-          {move.category === 'status' || move.power === 0
-            ? move.name
-            : `PWR ${move.power} · ${move.type}`}
-        </p>
-      </div>
-
-      {/* PP dots */}
-      <div className="flex gap-0.5 justify-center pb-1.5">
-        {Array.from({ length: Math.min(maxCombatPp, 3) }).map((_, i) => (
+      {/* Card body */}
+      <div
+        className={`relative flex flex-col rounded-xl border-2 overflow-hidden transition-all duration-150 ${borderClass} ${scaleClass}`}
+        style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
+      >
+        {/* Title — centered, no scroll */}
+        <div className="pt-3 pb-1 px-2 text-center">
           <span
-            key={i}
-            className={`text-xs ${i < currentPp ? 'text-green-400' : 'text-gray-600'}`}
+            className="text-white font-bold drop-shadow leading-tight"
+            style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.875rem' }}
           >
-            {i < currentPp ? '●' : '○'}
+            {move.name}
           </span>
-        ))}
+        </div>
+
+        {/* Type icon */}
+        <div className="flex items-center justify-center mt-2">
+          {icon
+            ? <img src={icon} alt={move.type} className="w-14 h-14 object-contain drop-shadow" />
+            : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{emoji ?? '⬜'}</span>
+          }
+        </div>
+
+        {/* Card info — vertically centered in space below icon */}
+        <div className="flex-1 flex items-center justify-center">
+          <span
+            className="text-white text-sm font-bold drop-shadow text-center"
+            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+          >
+            {cardInfo}
+          </span>
+        </div>
       </div>
     </div>
   );

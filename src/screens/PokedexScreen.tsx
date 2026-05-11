@@ -59,7 +59,7 @@ export default function PokedexScreen() {
                     : 'bg-gray-800/50 border-gray-800'
                 }`}
             >
-              <span className="text-gray-600 text-xs absolute top-1.5 left-2">#{template.id}</span>
+              <span className="text-gray-600 text-sm absolute top-1.5 left-2">#{template.id}</span>
 
               {caught || seen ? (
                 <img
@@ -67,7 +67,8 @@ export default function PokedexScreen() {
                   alt={template.name}
                   style={{
                     display: 'block',
-                    width: '100%',
+                    width: '75%',
+                    margin: '0 auto',
                     aspectRatio: '1',
                     objectFit: 'contain',
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
@@ -81,7 +82,7 @@ export default function PokedexScreen() {
 
               <div className="mt-2 flex flex-col items-center gap-1">
                 <span
-                  className={`text-xs font-semibold text-center leading-tight truncate w-full text-center
+                  className={`text-sm font-semibold text-center leading-tight truncate w-full text-center
                     ${caught ? 'text-gray-200' : seen ? 'text-gray-500' : 'text-gray-700'}`}
                 >
                   {caught || seen ? template.name : '???'}

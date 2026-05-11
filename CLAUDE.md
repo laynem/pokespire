@@ -33,6 +33,7 @@
 - Project ref: jydcurgjlwwkqwoilqib
 - Env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (in .env.local)
 - MCP config: .claude/mcp.json
+- Service role key: stored in .env.local as SUPABASE_SERVICE_ROLE_KEY (user has provided this 3 times — do NOT ask again, read it from .env.local)
 
 ## Oracle Cloud Deployment
 - IP: 163.192.32.60 (ubuntu user)

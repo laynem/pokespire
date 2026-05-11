@@ -1,11 +1,17 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import GameHeader from './components/GameHeader';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import { useAuthStore } from './store/authStore';
 import { useRunStore } from './store/runStore';
-import { loadSave, upsertSave } from './lib/runSaveService';
+import {
+  loadProgression,
+  upsertPokemon,
+  upsertBadge,
+  upsertItem,
+  upsertCard,
+} from './lib/progressionService';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import StarterSelectScreen from './screens/StarterSelectScreen';
 import MapScreen from './screens/MapScreen';
@@ -28,8 +34,6 @@ function AnimatedRoutes() {
   const showHeader = !NO_HEADER_ROUTES.has(location.pathname);
   const { user, loading } = useAuthStore();
   const [saveLoaded, setSaveLoaded] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
     if (!user) {
       useRunStore.getState().endRun();
@@ -38,22 +42,41 @@ function AnimatedRoutes() {
     }
 
     setSaveLoaded(false);
-    loadSave(user.id).then((saved) => {
-      if (saved) useRunStore.getState().hydrate(saved);
+    loadProgression(user.id).then((progression) => {
+      useRunStore.getState().hydrate(progression);
       setSaveLoaded(true);
     });
 
+    let prev = useRunStore.getState();
     const unsub = useRunStore.subscribe((state) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        upsertSave(user.id, state);
-      }, 1500);
+      // Sync newly seen pokemon
+      state.seenPokemon.forEach((id) => {
+        if (!prev.seenPokemon.includes(id)) {
+          upsertPokemon(user.id, id, state.caughtPokemon.includes(id));
+        }
+      });
+      // Upgrade seen → caught
+      state.caughtPokemon.forEach((id) => {
+        if (!prev.caughtPokemon.includes(id)) {
+          upsertPokemon(user.id, id, true);
+        }
+      });
+      // Sync new badges
+      state.defeatedGyms.forEach((badge) => {
+        if (!prev.defeatedGyms.includes(badge)) upsertBadge(user.id, badge);
+      });
+      // Sync new items found
+      state.foundItems.forEach((item) => {
+        if (!prev.foundItems.includes(item)) upsertItem(user.id, item);
+      });
+      // Sync new cards collected
+      state.collectedCards.forEach((card) => {
+        if (!prev.collectedCards.includes(card)) upsertCard(user.id, card, true);
+      });
+      prev = state;
     });
 
-    return () => {
-      unsub();
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+    return () => unsub();
   }, [user]);
 
   const footer = (

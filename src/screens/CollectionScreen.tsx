@@ -110,7 +110,7 @@ export default function CollectionScreen() {
 
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-2 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
 
@@ -131,7 +131,7 @@ export default function CollectionScreen() {
                   </div>
                   <div
                     className="flex flex-col rounded-xl border-2 border-yellow-400/80 overflow-hidden"
-                    style={{ background: bg, width: '100%', aspectRatio: '7/10' }}
+                    style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
                   >
                     <div className="pt-1 px-1 text-center">
                       <span className="text-white font-bold drop-shadow leading-tight" style={{ fontSize: '0.5rem' }}>
@@ -164,7 +164,7 @@ export default function CollectionScreen() {
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                  style={{ width: '100%', aspectRatio: '7/10' }}
+                  style={{ width: '8.75rem', height: '12.5rem' }}
                 >
                   <span className="text-xl mb-1 opacity-30">❓</span>
                   <span className="text-gray-600 text-xs font-bold">???</span>
@@ -177,7 +177,7 @@ export default function CollectionScreen() {
 
       {/* Items tab */}
       {tab === 'items' && (
-        <div className="p-2 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 
@@ -186,7 +186,7 @@ export default function CollectionScreen() {
                 <div
                   key={item.id}
                   className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
-                  style={{ width: '100%', aspectRatio: '7/10' }}
+                  style={{ width: '8.75rem', height: '12.5rem' }}
                 >
                   <div className="pt-1 pb-0 px-1 text-center">
                     <span
@@ -224,7 +224,7 @@ export default function CollectionScreen() {
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                  style={{ width: '100%', aspectRatio: '7/10' }}
+                  style={{ width: '8.75rem', height: '12.5rem' }}
                 >
                   <span className="text-xl mb-1 opacity-30">❓</span>
                   <span className="text-gray-600 text-xs font-bold">???</span>

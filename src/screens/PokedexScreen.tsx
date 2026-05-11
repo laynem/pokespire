@@ -45,7 +45,7 @@ export default function PokedexScreen() {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto subtle-scroll">
       {/* Grid */}
-      <div className="p-2 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
+      <div className="px-4 pt-6 pb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);
@@ -56,7 +56,7 @@ export default function PokedexScreen() {
                 key={template.id}
                 className={`flex flex-col rounded-xl border-2 bg-gray-800 overflow-hidden select-none
                   ${caught ? 'border-yellow-400/80' : 'border-gray-500/50'}`}
-                style={{ width: '100%', aspectRatio: '7/10' }}
+                style={{ width: '8.75rem', height: '12.5rem' }}
               >
                 <div className="pt-1 pb-0 px-1 text-center">
                   <span
@@ -106,7 +106,7 @@ export default function PokedexScreen() {
               </div>
               <div
                 className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                style={{ width: '100%', aspectRatio: '7/10' }}
+                style={{ width: '8.75rem', height: '12.5rem' }}
               >
                 <span className="text-xl mb-1 opacity-30">❓</span>
                 <span className="text-gray-600 text-xs font-bold">???</span>

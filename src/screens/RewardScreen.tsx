@@ -5,11 +5,13 @@ import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
 import { getEnergyCost } from '../utils/combatEngine';
 import MoveCard from '../components/MoveCard';
+import PokemonStatCard from '../components/PokemonStatCard';
 import type { Move, Pokemon, LevelUpResult } from '../types';
 
 interface RewardState {
   gold: number;
   levelUps?: LevelUpResult[];
+  enemy?: Pokemon;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -32,10 +34,19 @@ function getDraftMoves(pokemon: Pokemon): Move[] {
   return shuffle(unique).slice(0, 3);
 }
 
+/** Find which party Pokemon has this move in their learnset */
+function getLearnerName(moveId: string, party: Pokemon[]): string | null {
+  for (const p of party) {
+    const learnset = LEARNSETS[p.id] ?? [];
+    if (learnset.some((e) => e.moveId === moveId)) return p.name;
+  }
+  return null;
+}
+
 export default function RewardScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { gold: goldEarned, levelUps = [] } = (location.state as RewardState) ?? { gold: 15 };
+  const { gold: goldEarned, levelUps = [], enemy } = (location.state as RewardState) ?? { gold: 15 };
 
   const { party, items, addGold, addMoveToParty, incrementMovesLearned } = useRunStore();
   const hasExpShare = items.some((i) => i.id === 'exp_share');
@@ -86,7 +97,6 @@ export default function RewardScreen() {
       {isFirstDraft && (
         <>
           <div className="text-center">
-            <p className="text-4xl mb-2">🏆</p>
             <h2 className="text-2xl font-bold text-yellow-400">Victory!</h2>
           </div>
 
@@ -101,6 +111,13 @@ export default function RewardScreen() {
               )}
             </div>
           </div>
+
+          {/* Defeated Pokemon stat card */}
+          {enemy && (
+            <div className="w-full">
+              <PokemonStatCard pokemon={enemy} />
+            </div>
+          )}
         </>
       )}
 
@@ -117,17 +134,24 @@ export default function RewardScreen() {
           <p className="text-center text-sm text-gray-400">
             Choose a move for <span className="text-white font-semibold">{currentTarget.name}</span>
           </p>
-          <div className="flex gap-3 justify-center flex-wrap">
+          <div className="flex flex-row gap-4 justify-center">
             {draftMoves.map((move) => (
-              <MoveCard
-                key={move.id}
-                move={move}
-                energyCost={getEnergyCost(move)}
-                currentPp={3}
-                maxCombatPp={3}
-                disabled={false}
-                onClick={() => handlePickMove(move)}
-              />
+              <div key={move.id} className="flex flex-col items-center gap-1">
+                <MoveCard
+                  move={move}
+                  energyCost={getEnergyCost(move)}
+                  currentPp={3}
+                  maxCombatPp={3}
+                  disabled={false}
+                  onClick={() => handlePickMove(move)}
+                />
+                {(() => {
+                  const learner = getLearnerName(move.id, party);
+                  return learner ? (
+                    <span className="text-xs text-gray-400">{learner}</span>
+                  ) : null;
+                })()}
+              </div>
             ))}
           </div>
           <button

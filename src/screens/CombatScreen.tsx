@@ -213,9 +213,10 @@ export default function CombatScreen() {
         let gold = 10 + Math.floor(Math.random() * 11);
         if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
         const winBossLeaderId = combat.bossLeaderId;
+        const defeatedEnemy = combat.enemy;
         combat.clearCombat();
         if (winBossLeaderId) navigate('/boss-reward', { state: { bossLeaderId: winBossLeaderId, gold, levelUps } });
-        else navigate('/reward', { state: { gold, levelUps } });
+        else navigate('/reward', { state: { gold, levelUps, enemy: defeatedEnemy } });
       }, 1500);
       return () => clearTimeout(t);
     }

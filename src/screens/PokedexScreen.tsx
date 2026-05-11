@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { POKEMON_TEMPLATES } from '../data/pokemon';
-import { getPokemonSpriteUrl } from '../hooks/usePokemon';
 
 const TYPE_COLORS: Record<string, string> = {
   Normal: 'bg-gray-500', Fire: 'bg-orange-500', Water: 'bg-blue-500',

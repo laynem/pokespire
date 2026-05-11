@@ -16,6 +16,7 @@ interface ShopEntry {
   label: string;
   description: string;
   icon: string;
+  sprite?: string;
   price: number;
   data?: Item | Move; // underlying object
 }
@@ -44,6 +45,7 @@ function buildInventory(party: Pokemon[], ownedItemIds: Set<string>): ShopEntry[
       label: item.name,
       description: item.description,
       icon: item.icon,
+      sprite: item.sprite,
       price: itemPrice(item),
       data: item,
     });
@@ -214,7 +216,10 @@ export default function PokeMartScreen() {
                 bought ? 'border-green-700/50 opacity-60' : 'border-gray-700'
               }`}
             >
-              <span className="text-2xl">{entry.icon}</span>
+              {entry.sprite
+                ? <img src={entry.sprite} alt={entry.label} className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
+                : <span className="text-2xl">{entry.icon}</span>
+              }
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm">{entry.label}</p>
                 <p className="text-xs text-gray-400 truncate">{entry.description}</p>

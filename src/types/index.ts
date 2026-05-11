@@ -76,6 +76,7 @@ export interface Item {
   name: string;
   description: string;
   icon: string;
+  sprite?: string;
   category: 'held' | 'consumable' | 'keyitem';
   effect?: Record<string, unknown>;
 }

@@ -134,7 +134,10 @@ export default function CollectionScreen() {
                             </span>
                           </div>
                           <div className="flex items-center justify-center mt-2">
-                            <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
+                            {item.sprite
+                              ? <img src={item.sprite} alt={item.name} className="w-12 h-12 object-contain" style={{ imageRendering: 'pixelated' }} />
+                              : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
+                            }
                           </div>
                           <div className="flex-1 flex items-center justify-center px-2">
                             <span

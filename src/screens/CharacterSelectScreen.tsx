@@ -73,7 +73,7 @@ export default function CharacterSelectScreen() {
             <img
               src={t.sprite}
               alt={t.name}
-              className="w-full aspect-square object-contain object-top scale-[1.6]"
+              className="w-full aspect-square object-contain object-top scale-[1.6] mb-14"
               style={{ imageRendering: 'pixelated' }}
             />
             <span className="font-bold text-lg">{t.name}</span>

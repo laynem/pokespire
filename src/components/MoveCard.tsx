@@ -149,7 +149,7 @@ export default function MoveCard({ move, energyCost, disabled, selected, onClick
         <div className="flex-1 flex items-center justify-center">
           <span
             className="text-white text-sm font-bold drop-shadow text-center"
-            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+            style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
           >
             {cardInfo}
           </span>

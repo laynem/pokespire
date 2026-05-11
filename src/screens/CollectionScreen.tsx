@@ -147,7 +147,7 @@ export default function CollectionScreen() {
                       }
                     </div>
                     <div className="flex-1 flex items-center justify-center">
-                      <span className="text-white text-sm font-bold drop-shadow text-center" style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}>
+                      <span className="text-white text-sm font-bold drop-shadow text-center" style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}>
                         {getCardInfo(move)}
                       </span>
                     </div>
@@ -207,7 +207,7 @@ export default function CollectionScreen() {
                     <div className="flex items-center justify-center px-1 pb-1">
                       <span
                         className="text-gray-300 text-center leading-tight"
-                        style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.45rem' }}
+                        style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.45rem' }}
                       >
                         {item.description}
                       </span>

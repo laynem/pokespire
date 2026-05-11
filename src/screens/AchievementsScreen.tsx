@@ -132,21 +132,21 @@ export default function AchievementsScreen() {
                         {a.unlocked ? (
                           <span
                             className="text-yellow-300 text-xs font-bold drop-shadow text-center"
-                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                            style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
                           >
                             ✓ Unlocked
                           </span>
                         ) : a.progress ? (
                           <span
                             className="text-gray-400 text-xs font-bold text-center"
-                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                            style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
                           >
                             {a.progress}
                           </span>
                         ) : (
                           <span
                             className="text-gray-600 text-xs font-bold"
-                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                            style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
                           >
                             Locked
                           </span>

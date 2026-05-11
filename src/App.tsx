@@ -12,6 +12,7 @@ import {
   upsertItem,
   upsertCard,
 } from './lib/progressionService';
+import { loadSave, upsertSave, deleteSave } from './lib/runSaveService';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import StarterSelectScreen from './screens/StarterSelectScreen';
 import MapScreen from './screens/MapScreen';
@@ -47,11 +48,16 @@ function AnimatedRoutes() {
     }
 
     setSaveLoaded(false);
-    loadProgression(user.id).then((progression) => {
-      useRunStore.getState().hydrate(progression);
+    Promise.all([loadProgression(user.id), loadSave(user.id)]).then(([progression, savedRun]) => {
+      if (savedRun?.inRun) {
+        useRunStore.getState().hydrate({ ...progression, ...savedRun });
+      } else {
+        useRunStore.getState().hydrate(progression);
+      }
       setSaveLoaded(true);
     });
 
+    let saveTimer: ReturnType<typeof setTimeout> | null = null;
     let prev = useRunStore.getState();
     const unsub = useRunStore.subscribe((state) => {
       // Sync newly seen pokemon
@@ -78,10 +84,23 @@ function AnimatedRoutes() {
       state.collectedCards.forEach((card) => {
         if (!prev.collectedCards.includes(card)) upsertCard(user.id, card, true);
       });
+
+      // Save active run state; delete when run ends
+      if (state.inRun) {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => upsertSave(user.id, state), 2000);
+      } else if (prev.inRun && !state.inRun) {
+        if (saveTimer) clearTimeout(saveTimer);
+        deleteSave(user.id);
+      }
+
       prev = state;
     });
 
-    return () => unsub();
+    return () => {
+      unsub();
+      if (saveTimer) clearTimeout(saveTimer);
+    };
   }, [user, isGuest]);
 
   const footer = (

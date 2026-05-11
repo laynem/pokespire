@@ -18,3 +18,8 @@ export async function upsertSave(userId: string, state: RunState): Promise<void>
   );
   if (error) console.error('[runSaveService] upsertSave failed:', error.message);
 }
+
+export async function deleteSave(userId: string): Promise<void> {
+  const { error } = await supabase.from('run_saves').delete().eq('user_id', userId);
+  if (error) console.error('[runSaveService] deleteSave failed:', error.message);
+}

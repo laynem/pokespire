@@ -6,60 +6,14 @@ import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
 import LevelUpToast from '../components/LevelUpToast';
 import { ACT_BOSS } from '../data/gymLeaders';
 import type { MapNode, NodeType, PokemonType, LevelUpResult } from '../types';
+import backgroundGrass from '../assets/background_grass.png';
 
 const ACT_THEMES = {
-  1: { bg: 'bg-green-900',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
-  2: { bg: 'bg-slate-900',  title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
-  3: { bg: 'bg-zinc-900',   title: 'Viridian City', subtitle: 'Final approach to the Gym' },
+  1: { bg: '',              bgStyle: { backgroundColor: 'rgb(55 177 104)' }, title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
+  2: { bg: 'bg-slate-900',  bgStyle: {},                                     title: 'Mt. Moon',      subtitle: 'Cave passage to Cerulean' },
+  3: { bg: 'bg-zinc-900',   bgStyle: {},                                     title: 'Viridian City', subtitle: 'Final approach to the Gym' },
 };
 
-// ── Pixel grass texture ──────────────────────────────────────────
-
-// 8 hand-picked greens matching the reference image
-const GRASS_PALETTE = [
-  '#4ea800', '#5aba00', '#68cc00', '#78d810',
-  '#60b800', '#72ca08', '#4a9c00', '#82d420',
-];
-
-function seededRand(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s = Math.imul(s ^ (s >>> 15), 0x2c1b3c6d);
-    s ^= s + Math.imul(s ^ (s >>> 7), 0xb5402911);
-    return ((s ^ (s >>> 14)) >>> 0) / 0xffffffff;
-  };
-}
-
-function GrassTexture({ seed }: { seed: number }) {
-  const [bgUrl, setBgUrl] = useState('');
-
-  useEffect(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
-    const ctx = canvas.getContext('2d')!;
-    const rand = seededRand(seed);
-    for (let y = 0; y < 32; y++) {
-      for (let x = 0; x < 32; x++) {
-        ctx.fillStyle = GRASS_PALETTE[Math.floor(rand() * GRASS_PALETTE.length)];
-        ctx.fillRect(x, y, 1, 1);
-      }
-    }
-    setBgUrl(canvas.toDataURL());
-  }, [seed]);
-
-  if (!bgUrl) return null;
-  return (
-    <div
-      className="absolute inset-0 pointer-events-none opacity-80"
-      style={{
-        backgroundImage: `url(${bgUrl})`,
-        backgroundSize: '128px 128px',
-        imageRendering: 'pixelated',
-      }}
-    />
-  );
-}
 
 const TYPE_COLORS: Record<string, string> = {
   Normal: 'bg-gray-500', Fire: 'bg-orange-600', Water: 'bg-blue-600',
@@ -147,8 +101,8 @@ function MapEdgesSvg({ nodes, positions, available, height, width }: {
           key={i}
           x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
           stroke={l.active ? '#facc15' : 'rgba(255,255,255,0.8)'}
-          strokeWidth={l.active ? 3 : 2}
-          strokeDasharray="6 5"
+          strokeWidth={l.active ? 5 : 3}
+          strokeDasharray="10 6"
         />
       ))}
     </svg>
@@ -221,7 +175,7 @@ export default function MapScreen() {
   }
 
   return (
-    <div className={`absolute inset-0 ${theme.bg} text-white flex overflow-hidden`}>
+    <div className={`absolute inset-0 ${theme.bg} text-white flex overflow-hidden`} style={theme.bgStyle}>
       {levelUps.length > 0 && <LevelUpToast levelUps={levelUps} />}
 
       {/* ── Left Sidebar ─────────────────────────────────────────── */}
@@ -309,11 +263,14 @@ export default function MapScreen() {
 
       {/* ── Map Canvas ───────────────────────────────────────────── */}
       <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
-        {/* Pixel grass texture (Act 1 only; other acts use plain bg) */}
-        {act === 1 && <GrassTexture seed={seed} />}
-
         {/* Inner canvas sized to fit all nodes */}
         <div ref={containerRef} className="relative" style={{ height: Math.max(svgHeight, 600) }}>
+          <img
+            src={backgroundGrass}
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{ opacity: 0.25 }}
+            alt=""
+          />
           {currentMap.length > 0 && (
             <>
               <MapEdgesSvg
@@ -338,6 +295,7 @@ export default function MapScreen() {
                       state={state}
                       isCurrent={node.id === visualCurrentId}
                       bossLeaderId={node.type === 'boss' ? ACT_BOSS[act] : undefined}
+                      trainerVariant={node.trainerVariant}
                       onClick={() => handleNodeClick(node)}
                     />
                   </div>

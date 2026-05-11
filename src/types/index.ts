@@ -67,6 +67,7 @@ export interface MapNode {
   col: number;
   connections: string[];
   cleared: boolean;
+  trainerVariant?: 'male' | 'female';
 }
 
 export interface Item {

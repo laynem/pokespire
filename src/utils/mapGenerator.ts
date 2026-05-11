@@ -62,14 +62,16 @@ export function generateMap(seed: number, act: number): MapNode[] {
     for (let col = 0; col < colCount; col++) {
       const id = `a${act}r${row}c${col}`;
       rowIds.push(id);
+      const nodeType = isBossRow ? 'boss' : weightedPick(rng, row, ROWS_PER_ACT);
       nodes.push({
         id,
-        type: isBossRow ? 'boss' : weightedPick(rng, row, ROWS_PER_ACT),
+        type: nodeType,
         act,
         row,
         col,
         connections: [],
         cleared: false,
+        trainerVariant: (nodeType === 'combat' || nodeType === 'elite') ? (rng() < 0.5 ? 'male' : 'female') : undefined,
       });
     }
     grid.push(rowIds);

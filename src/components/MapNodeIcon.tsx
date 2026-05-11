@@ -1,5 +1,10 @@
 import { GYM_LEADERS } from '../data/gymLeaders';
 import type { NodeType } from '../types';
+import homeImg from '../assets/home.png';
+import gymImg from '../assets/gym.png';
+import enemyMale from '../assets/enemy_male.png';
+import enemyFemale from '../assets/enemy_female.png';
+import enemyBoss from '../assets/enemy_boss.png';
 
 export const NODE_META: Record<NodeType, { icon: string; label: string; color: string; glow: string }> = {
   home:     { icon: '🏠',  label: 'Home',           color: 'border-gray-400 bg-gray-800',     glow: '' },
@@ -17,21 +22,23 @@ interface Props {
   state: 'cleared' | 'available' | 'locked';
   isCurrent?: boolean;
   bossLeaderId?: string;
+  trainerVariant?: 'male' | 'female';
   onClick?: () => void;
 }
 
-export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, onClick }: Props) {
+export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, trainerVariant, onClick }: Props) {
   const meta = NODE_META[type];
   const isHome = type === 'home';
   const isBoss = type === 'boss';
   const isClickable = state === 'available';
   const gymLeader = isBoss && bossLeaderId ? GYM_LEADERS[bossLeaderId] : null;
 
-  const sizeClass = isBoss ? 'w-20 h-20' : 'w-14 h-14';
+  // home and boss render at 2x size (~96px); normal nodes ~48px
+  const sizeClass = (isHome || isBoss) ? 'w-24 h-24' : 'w-12 h-12';
 
   const btnClass = [
     `relative flex items-center justify-center ${sizeClass} rounded-full border-2 text-2xl`,
-    'transition-all duration-150 select-none',
+    'transition-all duration-150 select-none overflow-hidden',
     isHome
       ? 'border-gray-400 bg-gray-700 cursor-default'
       : state === 'cleared'
@@ -40,6 +47,43 @@ export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, onCl
       ? `${meta.color} cursor-default brightness-75`
       : `${meta.color} ${meta.glow} cursor-pointer hover:scale-110 hover:brightness-125`,
   ].join(' ');
+
+  function renderIcon() {
+    if (isHome) {
+      return <img src={homeImg} alt="Home" className="w-full h-full object-cover" />;
+    }
+    if (isBoss) {
+      if (gymLeader) {
+        return (
+          <img
+            src={gymLeader.spriteUrl}
+            alt={gymLeader.name}
+            className="w-full h-full object-cover object-top"
+            onError={(e) => { (e.target as HTMLImageElement).src = gymImg; }}
+          />
+        );
+      }
+      return <img src={gymImg} alt="Gym" className="w-full h-full object-cover" />;
+    }
+    if (type === 'combat' || type === 'elite') {
+      const src = type === 'elite'
+        ? enemyBoss
+        : trainerVariant === 'female' ? enemyFemale : enemyMale;
+      return <img src={src} alt={meta.label} className="w-full h-full object-cover" />;
+    }
+    if (type === 'treasure') {
+      return (
+        <svg viewBox="0 0 100 100" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
+          <path d="M 4 50 A 46 46 0 0 1 96 50 Z" fill="#ef4444"/>
+          <rect x="4" y="46" width="92" height="8" fill="#1a1a1a"/>
+          <circle cx="50" cy="50" r="13" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
+          <circle cx="50" cy="50" r="5" fill="#e5e7eb"/>
+        </svg>
+      );
+    }
+    return meta.icon;
+  }
 
   return (
     <div className="relative flex flex-col items-center gap-1.5">
@@ -53,24 +97,7 @@ export default function MapNodeIcon({ type, state, isCurrent, bossLeaderId, onCl
         title={isBoss && gymLeader ? gymLeader.name : meta.label}
         className={btnClass}
       >
-        {isBoss && gymLeader ? (
-          <img
-            src={gymLeader.spriteUrl}
-            alt={gymLeader.name}
-            className="w-full h-full object-cover object-top rounded-full"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : type === 'treasure' ? (
-          <svg viewBox="0 0 100 100" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="46" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
-            <path d="M 4 50 A 46 46 0 0 1 96 50 Z" fill="#ef4444"/>
-            <rect x="4" y="46" width="92" height="8" fill="#1a1a1a"/>
-            <circle cx="50" cy="50" r="13" fill="white" stroke="#1a1a1a" strokeWidth="6"/>
-            <circle cx="50" cy="50" r="5" fill="#e5e7eb"/>
-          </svg>
-        ) : (
-          meta.icon
-        )}
+        {renderIcon()}
         {state === 'cleared' && !isHome && (
           <span className="absolute -top-1 -right-1 text-xs bg-green-600 rounded-full w-4 h-4 flex items-center justify-center leading-none">✓</span>
         )}

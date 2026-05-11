@@ -23,23 +23,23 @@ export default function PokemonStatCard({ pokemon, selected = false, onClick }: 
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all duration-150 w-full
+      className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-150 w-full overflow-hidden
         ${selected
           ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_16px_rgba(250,204,21,0.5)] scale-105'
           : 'border-gray-600 bg-gray-800 hover:border-yellow-500/60 hover:scale-102'
         }`}
     >
       {/* Sprite */}
-      <div className="w-20 h-20 flex items-center justify-center">
-        {loading || !spriteUrl
-          ? <span className="text-4xl">🔴</span>
-          : <img src={spriteUrl} alt={pokemon.name} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
-        }
-      </div>
+      {loading || !spriteUrl
+        ? <div className="w-full aspect-square flex items-center justify-center text-6xl">🔴</div>
+        : <img src={spriteUrl} alt={pokemon.name} className="w-full aspect-square object-contain scale-[1.6]" style={{ imageRendering: 'pixelated' }} />
+      }
 
       {/* Name + level */}
-      <p className="font-bold text-white text-sm leading-tight">{pokemon.name}</p>
-      <p className="text-xs text-gray-400">Lv. {pokemon.level}</p>
+      <div className="flex items-center gap-2">
+        <p className="font-bold text-white text-lg leading-tight">{pokemon.name}</p>
+        <span className="text-xs text-gray-400 bg-gray-700 px-1.5 py-0.5 rounded">Lv.{pokemon.level}</span>
+      </div>
 
       {/* Types */}
       <div className="flex gap-1 flex-wrap justify-center">

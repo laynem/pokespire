@@ -112,32 +112,33 @@ export default function CollectionScreen() {
 
             if (found) {
               return (
-                <div
-                  key={item.id}
-                  className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
-                  style={{ width: '10.5rem', height: '14.5rem' }}
-                >
-                  <div className="pt-3 pb-1 px-2 text-center">
-                    <span
-                      className="text-white font-bold drop-shadow leading-tight"
-                      style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.875rem' }}
-                    >
-                      {item.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center mt-2">
-                    {item.sprite
-                      ? <img src={item.sprite} alt={item.name} className="w-14 h-14 object-contain" style={{ imageRendering: 'pixelated' }} />
-                      : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
-                    }
-                  </div>
-                  <div className="flex-1 flex items-center justify-center px-2">
-                    <span
-                      className="text-gray-300 text-center leading-tight"
-                      style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.6rem' }}
-                    >
-                      {item.description}
-                    </span>
+                <div key={item.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
+                  <div
+                    className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
+                    style={{ width: '8.75rem', height: '12.5rem' }}
+                  >
+                    <div className="pt-2 pb-1 px-2 text-center">
+                      <span
+                        className="text-white font-bold drop-shadow leading-tight"
+                        style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.75rem' }}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center mt-1">
+                      {item.sprite
+                        ? <img src={item.sprite} alt={item.name} className="w-10 h-10 object-contain" style={{ imageRendering: 'pixelated' }} />
+                        : <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{item.icon}</span>
+                      }
+                    </div>
+                    <div className="flex-1 flex items-center justify-center px-2">
+                      <span
+                        className="text-gray-300 text-center leading-tight"
+                        style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.55rem' }}
+                      >
+                        {item.description}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -153,7 +154,7 @@ export default function CollectionScreen() {
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                  style={{ width: '10.5rem', height: '14.5rem' }}
+                  style={{ width: '8.75rem', height: '12.5rem' }}
                 >
                   <span className="text-3xl mb-2 opacity-30">❓</span>
                   <span className="text-gray-600 text-xs font-bold">???</span>

@@ -112,7 +112,7 @@ export default function CollectionScreen() {
 
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
+        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center', maxWidth: 'calc(9 * 9.75rem + 8 * 0.5rem + 4rem)', margin: '0 auto' }}>
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
 
@@ -179,7 +179,7 @@ export default function CollectionScreen() {
 
       {/* Items tab */}
       {tab === 'items' && (
-        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
+        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center', maxWidth: 'calc(9 * 9.75rem + 8 * 0.5rem + 4rem)', margin: '0 auto' }}>
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 

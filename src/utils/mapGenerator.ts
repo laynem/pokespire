@@ -11,136 +11,169 @@ function makeRng(seed: number) {
   };
 }
 
-// Row-based weights: catch heavy early, rest heavy late, ? replaced by catch
-// row is 0-indexed (0 = first row after home, ROWS_PER_ACT-1 = last before boss)
-function getRowWeights(row: number, totalRows: number): Array<[NodeType, number]> {
-  const progress = row / (totalRows - 1); // 0.0 (early) → 1.0 (late)
-  const catchW  = Math.round(30 - progress * 25); // 30 → 5
-  const restW   = Math.round(2  + progress * 18); // 2  → 20
-  const shopW   = 10;
-  const combatW = 100 - catchW - restW - shopW;
-  return [
-    ['combat',   Math.max(combatW, 40)],
-    ['treasure', catchW],
-    ['rest',     restW],
-    ['shop',     shopW],
-  ];
-}
-
-function weightedPick(rng: () => number, row: number, totalRows: number): NodeType {
-  const weights = getRowWeights(row, totalRows);
+function weightedPick(rng: () => number, weights: Array<[NodeType, number]>): NodeType {
   const total = weights.reduce((s, [, w]) => s + w, 0);
   let roll = rng() * total;
   for (const [type, weight] of weights) {
     roll -= weight;
     if (roll <= 0) return type;
   }
-  return 'combat';
+  return weights[0][0];
 }
 
-// Variable cols per row — weighted toward 2-3 for organic density
-function pickColCount(rng: () => number): number {
-  const r = rng();
-  if (r < 0.10) return 1;
-  if (r < 0.38) return 2;
-  if (r < 0.80) return 3;
-  return 4;
-}
+function getNodeType(rng: () => number, eventIdx: number, laneLength: number): { type: NodeType; trainerVariant?: 'male' | 'female' | 'boss' } {
+  const lastTwentyPct = Math.floor(laneLength * 0.8);
+  let weights: Array<[NodeType, number]>;
 
-const ROWS_PER_ACT = 15; // 15 regular rows + 1 boss = ~40 encounters, map scrolls
+  if (eventIdx < 3) {
+    // First 3 events: no pokecenter
+    weights = [
+      ['normal_battle', 50],
+      ['catch',         35],
+      ['rest',          15],
+    ];
+  } else if (eventIdx <= 4) {
+    // Events 3-4: elevated catch
+    weights = [
+      ['normal_battle', 40],
+      ['catch',         30],
+      ['rest',          15],
+      ['elite_battle',  10],
+      ['pokecenter',     5],
+    ];
+  } else if (eventIdx < lastTwentyPct) {
+    // Normal distribution
+    weights = [
+      ['normal_battle', 45],
+      ['elite_battle',  15],
+      ['catch',         10],
+      ['rest',          15],
+      ['pokecenter',    10],
+      ['shop',           5],
+    ];
+  } else {
+    // Last 20%: elevated pokecenter
+    weights = [
+      ['normal_battle', 35],
+      ['elite_battle',  15],
+      ['rest',          20],
+      ['pokecenter',    25],
+      ['shop',           5],
+    ];
+  }
+
+  const type = weightedPick(rng, weights);
+  let trainerVariant: 'male' | 'female' | 'boss' | undefined;
+  if (type === 'normal_battle') {
+    trainerVariant = rng() < 0.5 ? 'male' : 'female';
+  } else if (type === 'elite_battle') {
+    trainerVariant = 'boss';
+  }
+
+  return { type, trainerVariant };
+}
 
 export function generateMap(seed: number, act: number): MapNode[] {
   const rng = makeRng(seed ^ (act * 0xdeadbeef));
   const nodes: MapNode[] = [];
-  const grid: string[][] = [];
 
-  for (let row = 0; row < ROWS_PER_ACT + 1; row++) {
-    const rowIds: string[] = [];
-    const isBossRow = row === ROWS_PER_ACT;
-    const colCount = isBossRow ? 1 : pickColCount(rng);
+  // Determine lane count: 75% → 3 lanes, 25% → 4 lanes
+  const laneCount = rng() < 0.75 ? 3 : 4;
 
-    for (let col = 0; col < colCount; col++) {
-      const id = `a${act}r${row}c${col}`;
-      rowIds.push(id);
-      nodes.push({
-        id,
-        type: isBossRow ? 'boss' : weightedPick(rng, row, ROWS_PER_ACT),
+  // Lanes: each has 13-15 events
+  const lanes: MapNode[][] = [];
+
+  for (let lane = 0; lane < laneCount; lane++) {
+    const laneLength = 13 + Math.floor(rng() * 3); // 13, 14, or 15
+    const laneNodes: MapNode[] = [];
+
+    for (let event = 0; event < laneLength; event++) {
+      const { type, trainerVariant } = getNodeType(rng, event, laneLength);
+      const node: MapNode = {
+        id: `lane${lane}-event${event}`,
+        type,
         act,
-        row,
-        col,
+        row: event,
+        col: lane,
         connections: [],
         cleared: false,
-      });
+        ...(trainerVariant ? { trainerVariant } : {}),
+      };
+      laneNodes.push(node);
+      nodes.push(node);
     }
-    grid.push(rowIds);
+
+    lanes.push(laneNodes);
   }
 
-  // Wire connections: more organic routing with crossing paths
-  for (let row = 0; row < ROWS_PER_ACT; row++) {
-    const fromIds = grid[row];
-    const toIds = grid[row + 1];
-    const incoming = new Set<string>();
-
-    for (const fromId of fromIds) {
-      const fromNode = nodes.find((n) => n.id === fromId)!;
-      const fromIdx = fromIds.indexOf(fromId);
-      const fromFrac = fromIds.length > 1 ? fromIdx / (fromIds.length - 1) : 0.5;
-
-      // Primary: proportional with large random shift → creates natural crossings
-      const primaryShift = (rng() - 0.5) * 0.8;
-      const primaryFrac = Math.max(0, Math.min(1, fromFrac + primaryShift));
-      const primaryIdx = Math.round(primaryFrac * (toIds.length - 1));
-      const primaryId = toIds[primaryIdx];
-      if (!fromNode.connections.includes(primaryId)) {
-        fromNode.connections.push(primaryId);
-        incoming.add(primaryId);
-      }
-
-      // Secondary: 50% chance — picks a different col to create branching / crossing
-      if (rng() < 0.5 && toIds.length > 1) {
-        const secondaryFrac = rng() < 0.6
-          ? Math.max(0, Math.min(1, fromFrac + (rng() - 0.5) * 0.8))
-          : rng(); // 40% fully random for dramatic crossings
-        const secondaryIdx = Math.round(secondaryFrac * (toIds.length - 1));
-        const secondaryId = toIds[secondaryIdx];
-        if (!fromNode.connections.includes(secondaryId)) {
-          fromNode.connections.push(secondaryId);
-          incoming.add(secondaryId);
-        }
-      }
-    }
-
-    // Guarantee every next-row node is reachable
-    for (const toId of toIds) {
-      if (!incoming.has(toId)) {
-        const randomFromId = fromIds[Math.floor(rng() * fromIds.length)];
-        const fromNode = nodes.find((n) => n.id === randomFromId)!;
-        if (!fromNode.connections.includes(toId)) fromNode.connections.push(toId);
-      }
+  // Wire sequential connections within each lane
+  for (const laneNodes of lanes) {
+    for (let i = 0; i < laneNodes.length - 1; i++) {
+      laneNodes[i].connections.push(laneNodes[i + 1].id);
     }
   }
 
-  // Home node at row -1: pre-cleared start marker, connects to all row-0 nodes
-  nodes.unshift({
-    id: `a${act}r-1c0`,
+  // Cross-lane connections between adjacent lanes every 4-6 events
+  for (let lane = 0; lane < laneCount - 1; lane++) {
+    const laneA = lanes[lane];
+    const laneB = lanes[lane + 1];
+    const maxLen = Math.min(laneA.length, laneB.length);
+
+    let nextCross = 4 + Math.floor(rng() * 3); // first cross at event 4-6
+    while (nextCross < maxLen - 1) {
+      // Add bidirectional cross connections at this event index
+      const nodeA = laneA[nextCross];
+      const nodeB = laneB[nextCross];
+      if (!nodeA.connections.includes(nodeB.id)) nodeA.connections.push(nodeB.id);
+      if (!nodeB.connections.includes(nodeA.id)) nodeB.connections.push(nodeA.id);
+      nextCross += 4 + Math.floor(rng() * 3); // next cross 4-6 events later
+    }
+  }
+
+  // Home node: single start connecting to event 0 of each lane
+  const homeConnections = lanes.map((l) => l[0].id);
+  const homeNode: MapNode = {
+    id: 'home',
     type: 'home',
     act,
     row: -1,
     col: 0,
-    connections: [...grid[0]],
+    connections: homeConnections,
     cleared: true,
-  });
+  };
+  nodes.unshift(homeNode);
+
+  // Gym (boss) node: all lanes connect their last event to it
+  const gymNode: MapNode = {
+    id: 'gym',
+    type: 'boss',
+    act,
+    row: Math.max(...lanes.map((l) => l.length)),
+    col: 0,
+    connections: [],
+    cleared: false,
+  };
+
+  for (const laneNodes of lanes) {
+    const lastNode = laneNodes[laneNodes.length - 1];
+    if (!lastNode.connections.includes('gym')) {
+      lastNode.connections.push('gym');
+    }
+  }
+
+  nodes.push(gymNode);
 
   return nodes;
 }
 
 export function getAvailableNodes(nodes: MapNode[], currentNodeId: string | null): string[] {
   if (!currentNodeId) {
-    const rows = Array.from(new Set(nodes.map((n) => n.row))).sort((a, b) => a - b);
-    for (const row of rows) {
-      const uncleared = nodes.filter((n) => n.row === row && !n.cleared);
-      if (uncleared.length > 0) return uncleared.map((n) => n.id);
-    }
+    // Return connections from home node
+    const home = nodes.find((n) => n.type === 'home');
+    if (home) return home.connections.filter((id) => {
+      const t = nodes.find((n) => n.id === id);
+      return t && !t.cleared;
+    });
     return [];
   }
   const current = nodes.find((n) => n.id === currentNodeId);

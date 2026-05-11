@@ -114,7 +114,7 @@ export default function CatchScreen() {
   }
 
   return (
-    <div className="absolute inset-0 bg-gray-900 text-white flex flex-col overflow-y-auto">
+    <div className="absolute inset-0 bg-gray-900 text-white flex flex-col overflow-y-auto pb-20">
       <div className="flex flex-col items-center px-4 py-6 gap-5 max-w-lg mx-auto w-full">
         <h2 className="text-2xl font-bold text-yellow-400">Wild Encounter!</h2>
         <p className="text-gray-400 text-sm text-center">Choose a Pokémon to add to your party.</p>

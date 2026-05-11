@@ -15,6 +15,22 @@ import PokeMartScreen from './screens/PokeMartScreen';
 
 const NO_HEADER_ROUTES = new Set(['/']);
 
+function LegalFooter() {
+  return (
+    <footer
+      className="fixed bottom-0 left-0 right-0 z-[150] bg-gray-950/95 border-t border-white/10 backdrop-blur-sm flex items-center justify-center"
+      style={{ height: '80px' }}
+    >
+      <p
+        className="text-gray-600 text-xs text-center pb-4"
+        style={{ maxWidth: '60%', margin: '0 auto' }}
+      >
+        PokeSpire is a fan-made project. Pokémon and all related names are trademarks of Nintendo / Game Freak. Not affiliated with or endorsed by Nintendo.
+      </p>
+    </footer>
+  );
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
   const showHeader = !NO_HEADER_ROUTES.has(location.pathname);
@@ -39,6 +55,7 @@ function AnimatedRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      <LegalFooter />
     </div>
   );
 }

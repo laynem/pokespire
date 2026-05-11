@@ -82,7 +82,7 @@ export default function RewardScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-6 max-w-lg mx-auto pb-20">
       {isFirstDraft && (
         <>
           <div className="text-center">

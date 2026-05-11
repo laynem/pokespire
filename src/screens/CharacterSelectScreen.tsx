@@ -48,7 +48,7 @@ export default function CharacterSelectScreen() {
   const selectedTrainer = TRAINERS.find((t) => t.id === selected)!;
 
   return (
-    <div className="absolute inset-0 bg-gray-900 text-white flex flex-col items-center justify-center px-4 py-6 gap-6 overflow-y-auto">
+    <div className="absolute inset-0 bg-gray-900 text-white flex flex-col items-center justify-center px-4 py-6 gap-6 overflow-y-auto pb-20">
       <h2 className="text-3xl font-bold text-yellow-400">Choose Your Trainer</h2>
 
       {/* Trainer cards */}

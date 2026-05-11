@@ -191,7 +191,7 @@ export default function PokeMartScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-5 max-w-lg mx-auto">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-8 gap-5 max-w-lg mx-auto pb-20">
       <div className="text-center">
         <p className="text-4xl mb-1">🛒</p>
         <h2 className="text-2xl font-bold text-yellow-400">Poké Mart</h2>

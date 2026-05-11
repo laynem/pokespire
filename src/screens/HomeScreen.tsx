@@ -7,7 +7,7 @@ export default function HomeScreen() {
   const inRun = useRunStore((s) => s.inRun);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-6 pb-20">
       <img src={logoFull} alt="PokeSpire" className="w-72 drop-shadow-lg" />
       <div className="flex flex-col gap-3 w-48">
         {inRun && (

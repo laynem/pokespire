@@ -312,12 +312,12 @@ export default function CombatScreen() {
           </div>
         </div>
 
-        <div className="absolute bottom-4 right-4 z-10">
+        <div className="absolute bottom-24 right-4 z-10">
           <PokemonHpBox pokemon={activePlayer} showHpNumbers />
         </div>
 
         {/* Combat log: bottom-center overlay */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-center z-10 pointer-events-none w-64">
+        <div className="absolute bottom-22 left-1/2 -translate-x-1/2 text-center z-10 pointer-events-none w-64">
           {[...lastLog].reverse().slice(0, 2).map((entry, i) => (
             <p
               key={i}
@@ -340,7 +340,7 @@ export default function CombatScreen() {
         )}
 
         {/* ══ FLOATING HAND PANEL (transparent, overlays battlefield) */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none pb-20">
 
           {/* Controls row */}
           <div className="flex items-center justify-between px-4 pt-2 pb-1 pointer-events-auto">

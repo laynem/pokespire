@@ -51,7 +51,7 @@ export default function BossRewardScreen() {
   }
 
   return (
-    <div className={`min-h-screen ${leader.bgClass} text-white flex flex-col items-center justify-center px-4 py-8 gap-6`}>
+    <div className={`min-h-screen ${leader.bgClass} text-white flex flex-col items-center justify-center px-4 py-8 gap-6 pb-20`}>
       {/* Badge award */}
       <div className="text-center">
         <p className="text-5xl mb-2">🏅</p>

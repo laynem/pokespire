@@ -225,7 +225,7 @@ export default function MapScreen() {
       {levelUps.length > 0 && <LevelUpToast levelUps={levelUps} />}
 
       {/* ── Left Sidebar ─────────────────────────────────────────── */}
-      <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto">
+      <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto pb-20">
 
         {/* Act info */}
         <div className="p-3 border-b border-white/10">
@@ -308,7 +308,7 @@ export default function MapScreen() {
       </div>
 
       {/* ── Map Canvas ───────────────────────────────────────────── */}
-      <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
+      <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative pb-20">
         {/* Pixel grass texture (Act 1 only; other acts use plain bg) */}
         {act === 1 && <GrassTexture seed={seed} />}
 

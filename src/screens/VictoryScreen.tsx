@@ -26,7 +26,7 @@ export default function VictoryScreen() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-8 px-4 py-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-8 px-4 py-8 pb-20">
       <div className="text-center">
         <div className="text-7xl mb-4">🏆</div>
         <h2 className="text-5xl font-bold text-yellow-400">Champion!</h2>

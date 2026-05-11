@@ -11,7 +11,7 @@ export default function GameOverScreen() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-8 pb-20">
       <div className="text-center">
         <div className="text-7xl mb-4">💀</div>
         <h2 className="text-5xl font-bold text-red-500">Blacked Out!</h2>

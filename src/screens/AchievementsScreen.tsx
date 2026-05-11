@@ -95,8 +95,8 @@ export default function AchievementsScreen() {
         {categories.map((category) => {
           const catResults = results.filter((a) => a.category === category);
           return (
-            <div key={category} className="px-4 pt-6 pb-2 max-w-3xl mx-auto w-full">
-              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">{category}</h2>
+            <div key={category} className="pt-6 pb-2 w-full">
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">{category}</h2>
               <div
                 style={{
                   display: 'grid',

@@ -47,7 +47,7 @@ function StarterSprite({ pokemonId }: { pokemonId: number }) {
     <img
       src={spriteUrl}
       alt=""
-      className="w-full aspect-square object-contain"
+      className="w-full aspect-square object-contain scale-[1.35]"
       style={{ imageRendering: 'pixelated' }}
     />
   );
@@ -67,14 +67,14 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
     <button
       onClick={onSelect}
       className={`
-        flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition text-left w-full
+        flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition text-left w-full overflow-hidden
         ${selected
           ? 'border-yellow-400 bg-gray-700 shadow-lg shadow-yellow-400/20'
           : 'border-gray-600 bg-gray-800 hover:border-gray-400'}
       `}
     >
       <StarterSprite pokemonId={pokemonId} />
-      <p className="font-bold text-base">{template.name}</p>
+      <p className="font-bold text-lg">{template.name}</p>
       <div className="flex gap-1 flex-wrap justify-center">
         {template.types.map((t) => <TypeBadge key={t} type={t} />)}
       </div>

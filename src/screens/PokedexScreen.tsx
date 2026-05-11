@@ -45,16 +45,16 @@ export default function PokedexScreen() {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto subtle-scroll">
       {/* Grid */}
-      <div className="px-8 pt-8 pb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
+      <div className="px-8 pt-8 pb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);
 
           if (caught || seen) {
             return (
+              <div key={template.id} className="select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
               <div
-                key={template.id}
-                className={`flex flex-col rounded-xl border-2 bg-gray-800 overflow-hidden select-none
+                className={`flex flex-col rounded-xl border-2 bg-gray-800 overflow-hidden
                   ${caught ? 'border-yellow-400/80' : 'border-gray-500/50'}`}
                 style={{ width: '8.75rem', height: '12.5rem' }}
               >
@@ -93,16 +93,17 @@ export default function PokedexScreen() {
                   )}
                 </div>
               </div>
+              </div>
             );
           }
 
           return (
-            <div key={template.id} className="relative select-none">
+            <div key={template.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
               <div
                 className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
-                style={{ width: 20, height: 20, top: 4, left: 4 }}
+                style={{ width: 30, height: 30, top: 0, left: 0 }}
               >
-                <span className="text-gray-500 text-xs font-bold leading-none">?</span>
+                <span className="text-gray-500 text-sm font-bold leading-none">?</span>
               </div>
               <div
                 className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"

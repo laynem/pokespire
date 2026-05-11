@@ -112,7 +112,7 @@ function AnimatedRoutes() {
   return (
     <div className="flex flex-col h-screen">
       {showHeader && <GameHeader />}
-      <div key={location.pathname} className={`animate-fade-in flex-1 relative ${['/pokedex', '/collection', '/achievements'].includes(location.pathname) ? 'overflow-y-auto subtle-scroll' : 'overflow-hidden'}`}>
+      <div key={location.pathname} className={`animate-fade-in flex-1 relative overflow-hidden`}>
         <Routes>
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/" element={<HomeScreen />} />

@@ -67,15 +67,15 @@ export default function PokedexScreen() {
                   src={getPokemonSpriteUrl(template.id)}
                   alt={template.name}
                   style={{
-                    width: '128px',
-                    height: '128px',
+                    width: '100%',
+                    aspectRatio: '1',
                     objectFit: 'contain',
                     imageRendering: 'pixelated',
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
                   }}
                 />
               ) : (
-                <div style={{ width: '128px', height: '128px' }} className="flex items-center justify-center">
+                <div className="w-full aspect-square flex items-center justify-center">
                   <span className="text-gray-600 text-4xl font-bold">?</span>
                 </div>
               )}

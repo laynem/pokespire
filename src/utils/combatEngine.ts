@@ -14,6 +14,12 @@ export interface CombatPokemon extends Pokemon {
   block: number; // temporary HP absorption, resets each turn
 }
 
+export interface CoinFlipResult {
+  result: 'heads' | 'tails';
+  status: string;
+  pokemonName: string;
+}
+
 export interface CombatState {
   playerParty: CombatPokemon[];     // full party, index 0 = active
   enemy: CombatPokemon;
@@ -29,6 +35,7 @@ export interface CombatState {
   combatUsedItems: string[];        // IDs used once-per-combat (Oran Berry)
   movesPlayedThisTurn: number;      // for Choice Band first-move bonus
   enemyFlinched: boolean;           // Kings Rock flinch
+  lastCoinFlip: CoinFlipResult | null; // most recent coin flip for status dodge
   // Boss fields
   enemyParty: CombatPokemon[];      // remaining boss team after active enemy
   bossLeaderId: string | null;
@@ -157,11 +164,16 @@ export function tickStatus(
 // --- Apply move effect ---
 type StatusEffect = 'burn' | 'freeze' | 'paralysis' | 'poison' | 'sleep' | null;
 
+const STATUS_NAMES: Record<string, string> = {
+  burn: 'burn', paralysis: 'paralysis', sleep: 'sleep', poison: 'poison', freeze: 'freeze',
+};
+
 export function applyMoveEffect(
   move: Move,
   attacker: CombatPokemon,
   defender: CombatPokemon,
   log: string[],
+  coinFlipOut?: { result: CoinFlipResult | null },
 ): { attacker: CombatPokemon; defender: CombatPokemon } {
   if (!move.effect || move.category !== 'status' && !move.effectChance) {
     return { attacker, defender };
@@ -176,6 +188,19 @@ export function applyMoveEffect(
 
   if (statusMap[move.effect] && !defender.status) {
     const status = statusMap[move.effect]!;
+    // Coin flip: player's pokemon may dodge the status
+    if (coinFlipOut !== undefined) {
+      const heads = Math.random() < 0.5;
+      const statusName = STATUS_NAMES[status] ?? status;
+      if (heads) {
+        log.push(`Coin flip — Heads! ${defender.name} dodged ${statusName}!`);
+        coinFlipOut.result = { result: 'heads', status: statusName, pokemonName: defender.name };
+        return { attacker, defender };
+      } else {
+        log.push(`Coin flip — Tails! ${statusName} hits ${defender.name}!`);
+        coinFlipOut.result = { result: 'tails', status: statusName, pokemonName: defender.name };
+      }
+    }
     log.push(`${defender.name} was ${status === 'paralysis' ? 'paralyzed' : status + 'ed'}!`);
     return { attacker, defender: { ...defender, status } };
   }
@@ -381,6 +406,7 @@ export function executeEnemyTurn(state: CombatState): CombatState {
   let enemy = state.enemy;
   let player = state.playerParty[0];
   let { items, combatUsedItems, enemyFlinched } = state;
+  let lastCoinFlip: CoinFlipResult | null = null;
 
   // Tick enemy status
   const enemyTick = tickStatus(enemy, log);
@@ -425,10 +451,12 @@ export function executeEnemyTurn(state: CombatState): CombatState {
       log.push(`${enemy.name} used ${move.name}!`);
     }
 
-    // Apply effect to player
-    const res = applyMoveEffect(move, enemy, player, log);
+    // Apply effect to player — with coin flip for status dodging
+    const coinFlipOut: { result: CoinFlipResult | null } = { result: null };
+    const res = applyMoveEffect(move, enemy, player, log, coinFlipOut);
     enemy = res.attacker as CombatPokemon;
     player = res.defender as CombatPokemon;
+    lastCoinFlip = coinFlipOut.result;
   }
 
   // Pick next intent using boss AI if applicable
@@ -438,7 +466,7 @@ export function executeEnemyTurn(state: CombatState): CombatState {
 
   const newParty = [player, ...state.playerParty.slice(1)];
 
-  return { ...state, playerParty: newParty, enemy, enemyIntent: nextIntent, items, combatUsedItems, enemyFlinched, log };
+  return { ...state, playerParty: newParty, enemy, enemyIntent: nextIntent, items, combatUsedItems, enemyFlinched, lastCoinFlip, log };
 }
 
 // --- Start of player turn: draw + energy regen ---
@@ -486,6 +514,7 @@ export function startPlayerTurn(state: CombatState): CombatState {
     combatUsedItems,
     movesPlayedThisTurn: 0,
     enemyFlinched: false,
+    lastCoinFlip: null,
     log,
   };
 
@@ -623,6 +652,7 @@ export function initCombat(
     combatUsedItems: [],
     movesPlayedThisTurn: 0,
     enemyFlinched: false,
+    lastCoinFlip: null,
     enemyParty: bossConfig ? bossConfig.remainingTeam.map(toCombatPokemon) : [],
     bossLeaderId: bossConfig?.leaderId ?? null,
     bossName: bossConfig?.bossName ?? null,

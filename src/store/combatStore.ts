@@ -48,6 +48,7 @@ const DEFAULT_STATE: CombatState = {
   combatUsedItems: [],
   movesPlayedThisTurn: 0,
   enemyFlinched: false,
+  lastCoinFlip: null,
   enemyParty: [],
   bossLeaderId: null,
   bossName: null,

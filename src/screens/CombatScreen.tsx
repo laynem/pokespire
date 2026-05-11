@@ -7,7 +7,7 @@ import MoveCard from '../components/MoveCard';
 import { getEnergyCost, awardXp } from '../utils/combatEngine';
 import { buildPokemon } from '../utils/pokemonFactory';
 import { GYM_LEADERS } from '../data/gymLeaders';
-import type { CombatPokemon } from '../utils/combatEngine';
+import type { CombatPokemon, CoinFlipResult } from '../utils/combatEngine';
 
 // ── HP Box (Pokemon game style) ──────────────────────────────────
 
@@ -92,6 +92,99 @@ function EnergyPips({ current, max = 3 }: { current: number; max?: number }) {
   );
 }
 
+// ── Coin Flip Modal ───────────────────────────────────────────────
+
+function CoinFlipModal({ flip }: { flip: CoinFlipResult }) {
+  const isHeads = flip.result === 'heads';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="bg-gray-900/90 border-2 border-yellow-400/60 rounded-2xl px-8 py-5 flex flex-col items-center gap-2 animate-bounce-in shadow-2xl">
+        <span className="text-4xl animate-spin-once">🪙</span>
+        <span className={`text-2xl font-extrabold tracking-wider ${isHeads ? 'text-green-400' : 'text-red-400'}`}>
+          {isHeads ? 'HEADS!' : 'TAILS!'}
+        </span>
+        <span className="text-sm text-gray-300 text-center">
+          {isHeads
+            ? `${flip.pokemonName} dodged ${flip.status}!`
+            : `${flip.status} hits ${flip.pokemonName}!`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Card Pile Modal ───────────────────────────────────────────────
+
+function CardPileModal({
+  title,
+  moves,
+  onClose,
+}: {
+  title: string;
+  moves: import('../types').Move[];
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 border border-gray-700 rounded-2xl p-5 w-[90vw] max-w-lg max-h-[80vh] flex flex-col gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center">
+          <p className="font-bold text-yellow-400 text-lg">{title}</p>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-300 text-xl leading-none">✕</button>
+        </div>
+        {moves.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-4">Empty</p>
+        ) : (
+          <div className="overflow-y-auto">
+            <div className="grid grid-cols-3 gap-3 pb-1">
+              {moves.map((move, i) => (
+                <MoveCard
+                  key={`${move.id}-${i}`}
+                  move={move}
+                  energyCost={getEnergyCost(move)}
+                  currentPp={3}
+                  disabled={true}
+                  onClick={() => {}}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-gray-500 text-right">{moves.length} card{moves.length !== 1 ? 's' : ''}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Seeded PRNG (Mulberry32) ──────────────────────────────────────
+
+function mulberry32(seed: number): () => number {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seededEnemy(seed: number, nodeId: string): { id: number; level: number } {
+  // Hash nodeId into a number and combine with seed
+  let h = seed;
+  for (let i = 0; i < nodeId.length; i++) {
+    h = Math.imul(31, h) + nodeId.charCodeAt(i) | 0;
+  }
+  const rand = mulberry32(h);
+  const wildIds = [1, 4, 7, 25];
+  const id = wildIds[Math.floor(rand() * wildIds.length)];
+  const level = 3 + Math.floor(rand() * 5);
+  return { id, level };
+}
+
 // ── Main screen ──────────────────────────────────────────────────
 
 let dmgIdCounter = 0;
@@ -99,12 +192,15 @@ let dmgIdCounter = 0;
 export default function CombatScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun } = useRunStore();
+  const { party, items: runItems, badges, seed, currentNodeId, clearNode, updateParty, updateItems, endRun } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
   const [showGiveUp, setShowGiveUp] = useState(false);
+  const [showDeckModal, setShowDeckModal] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [lastLog, setLastLog] = useState<string[]>([]);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
+  const [coinFlipModal, setCoinFlipModal] = useState<CoinFlipResult | null>(null);
 
   const [enemyHitKey, setEnemyHitKey] = useState(0);
   const [playerHitKey, setPlayerHitKey] = useState(0);
@@ -137,8 +233,8 @@ export default function CombatScreen() {
         const remainingTeam = leader.team.slice(1).map((m) => buildPokemon(m.pokemonId, m.level, m.moveIds));
         combat.startCombat(party, leadPokemon, runItems, { leaderId: bossLeaderId, remainingTeam, bossName: leader.name, badges });
       } else {
-        const wildId = [1, 4, 7, 25][Math.floor(Math.random() * 4)];
-        const wildLevel = 3 + Math.floor(Math.random() * 5);
+        // Seeded enemy selection — same node always produces same enemy
+        const { id: wildId, level: wildLevel } = seededEnemy(seed, currentNodeId ?? 'wild');
         const wildEnemy = buildPokemon(wildId, wildLevel);
         combat.startCombat(party, wildEnemy, runItems);
       }
@@ -195,6 +291,15 @@ export default function CombatScreen() {
   useEffect(() => {
     if (combat.enemy?.currentHp === 0) { setEnemyFainting(true); setTimeout(() => setEnemyFainting(false), 600); }
   }, [combat.enemy?.currentHp]); // eslint-disable-line
+
+  // Coin flip modal
+  useEffect(() => {
+    if (combat.lastCoinFlip) {
+      setCoinFlipModal(combat.lastCoinFlip);
+      const t = setTimeout(() => setCoinFlipModal(null), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [combat.lastCoinFlip]); // eslint-disable-line
 
   // Phase transitions
   useEffect(() => {
@@ -277,7 +382,7 @@ export default function CombatScreen() {
           )}
         </div>
 
-        <div className="absolute top-8 right-6 z-10">
+        <div className="absolute z-10" style={{ top: '-150px', right: '-150px' }}>
           <div className="relative">
             <DamageFloat nums={enemyDmgNums} />
             {enemySpriteUrl ? (
@@ -295,7 +400,7 @@ export default function CombatScreen() {
         </div>
 
         {/* Player: sprite bottom-left, HP box bottom-right */}
-        <div className="absolute bottom-20 left-4 z-10">
+        <div className="absolute z-10" style={{ top: '-150px', left: '-150px' }}>
           <div className="relative">
             <DamageFloat nums={playerDmgNums} />
             {playerSpriteUrl ? (
@@ -344,7 +449,25 @@ export default function CombatScreen() {
 
           {/* Controls row */}
           <div className="flex items-center justify-between px-4 pt-2 pb-1 pointer-events-auto">
-            <EnergyPips current={combat.playerEnergy} />
+            <div className="flex items-center gap-3">
+              <EnergyPips current={combat.playerEnergy} />
+              {/* Deck pile button */}
+              <button
+                onClick={() => setShowDeckModal(true)}
+                className="text-xs bg-stone-800/80 hover:bg-stone-600/80 text-gray-300 px-2 py-1.5 rounded transition backdrop-blur-sm flex items-center gap-1"
+              >
+                <span>🃏</span>
+                <span>{combat.playerDeck.length}</span>
+              </button>
+              {/* Discard pile button */}
+              <button
+                onClick={() => setShowDiscardModal(true)}
+                className="text-xs bg-stone-800/80 hover:bg-stone-600/80 text-gray-400 px-2 py-1.5 rounded transition backdrop-blur-sm flex items-center gap-1"
+              >
+                <span>🗑</span>
+                <span>{combat.playerDiscard.length}</span>
+              </button>
+            </div>
 
             {!isPlayerTurn && (
               <span className="text-xs text-stone-300/80 animate-pulse drop-shadow">Enemy is attacking…</span>
@@ -424,6 +547,27 @@ export default function CombatScreen() {
       </div>
 
       {/* ══ OVERLAYS ═══════════════════════════════════════════════ */}
+
+      {/* Coin flip modal */}
+      {coinFlipModal && <CoinFlipModal flip={coinFlipModal} />}
+
+      {/* Deck modal */}
+      {showDeckModal && (
+        <CardPileModal
+          title="Draw Pile"
+          moves={combat.playerDeck}
+          onClose={() => setShowDeckModal(false)}
+        />
+      )}
+
+      {/* Discard modal */}
+      {showDiscardModal && (
+        <CardPileModal
+          title="Discard Pile"
+          moves={combat.playerDiscard}
+          onClose={() => setShowDiscardModal(false)}
+        />
+      )}
 
       {/* Victory / defeat */}
       {(combat.phase === 'victory' || combat.phase === 'defeat') && (

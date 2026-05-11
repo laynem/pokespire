@@ -159,7 +159,7 @@ export default function MapScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const levelUps: LevelUpResult[] = (location.state as { levelUps?: LevelUpResult[] } | null)?.levelUps ?? [];
-  const { currentMap, currentNodeId, act, seed, items, party, setMap, setCurrentNode, clearNode, endRun } = useRunStore();
+  const { currentMap, currentNodeId, act, seed, items, party, setMap, setCurrentNode, endRun } = useRunStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapScrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(320);

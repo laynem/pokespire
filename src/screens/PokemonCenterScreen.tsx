@@ -39,7 +39,7 @@ function PokemonRow({ pokemon, selected, onClick }: { pokemon: Pokemon; selected
 
 export default function PokemonCenterScreen() {
   const navigate = useNavigate();
-  const { party, healParty, addMoveToParty, updateParty, clearNode, currentNodeId } = useRunStore();
+  const { party, healParty, updateParty, clearNode, currentNodeId } = useRunStore();
   const [tab, setTab] = useState<Tab>('heal');
   const [healed, setHealed] = useState(false);
 

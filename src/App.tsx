@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import GameHeader from './components/GameHeader';
 import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
+import { useAuthStore } from './store/authStore';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import StarterSelectScreen from './screens/StarterSelectScreen';
 import MapScreen from './screens/MapScreen';
@@ -13,17 +15,31 @@ import CatchScreen from './screens/CatchScreen';
 import PokemonCenterScreen from './screens/PokemonCenterScreen';
 import PokeMartScreen from './screens/PokeMartScreen';
 
-const NO_HEADER_ROUTES = new Set(['/']);
+const NO_HEADER_ROUTES = new Set(['/', '/login']);
 
 function AnimatedRoutes() {
   const location = useLocation();
   const showHeader = !NO_HEADER_ROUTES.has(location.pathname);
+  const { user, loading } = useAuthStore();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
 
   return (
     <div className="flex flex-col h-screen">
       {showHeader && <GameHeader />}
       <div key={location.pathname} className={`animate-fade-in flex-1 relative overflow-hidden`}>
         <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/" element={<HomeScreen />} />
           <Route path="/character-select" element={<CharacterSelectScreen />} />
           <Route path="/starter-select" element={<StarterSelectScreen />} />

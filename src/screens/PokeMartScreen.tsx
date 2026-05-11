@@ -36,7 +36,7 @@ function buildInventory(party: Pokemon[], ownedItemIds: Set<string>): ShopEntry[
   const availableItems = Object.values(ITEMS_DATA).filter(
     (item) => !ownedItemIds.has(item.id)
   );
-  const itemPrice = (item: Item) => 75 + Math.floor(Math.random() * 76); // 75-150
+  const itemPrice = (_item: Item) => 75 + Math.floor(Math.random() * 76); // 75-150
   for (const item of shuffle(availableItems).slice(0, 3)) {
     entries.push({
       id: `item_${item.id}`,

@@ -4,10 +4,6 @@ import { MOVES } from '../data/moves';
 import { getMovesAtLevel } from '../data/learnsets';
 import { getStarterDeck, STARTER_DECK_IDS } from '../data/starterDecks';
 
-function calcStat(base: number, level: number): number {
-  return Math.floor((2 * base * level) / 100) + 5;
-}
-
 function calcHp(base: number, level: number): number {
   return Math.floor((2 * base * level) / 100) + level + 10;
 }

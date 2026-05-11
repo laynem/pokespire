@@ -29,9 +29,15 @@
 - Dev server: localhost:5173
 - Worktrees: .claude/worktrees/ (Claude Code feature branches)
 
+## Autonomous Access
+Claude has full credentials for all environments — do NOT ask the user for keys, tokens, or passwords.
+- **GitHub**: git remote configured, push directly
+- **Oracle Cloud**: SSH key at `C:/Users/lmats/.ssh/ssh-key-2026-04-08 (1).key`
+- **Supabase**: `SUPABASE_SERVICE_ROLE_KEY` in `D:/claude/PokeSpire/.env.local` (user has provided this 3 times — always read from file, never ask again)
+
 ## Supabase
 - Project ref: jydcurgjlwwkqwoilqib
-- Env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (in .env.local)
+- Env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY (all in .env.local)
 - MCP config: .claude/mcp.json
 
 ## Oracle Cloud Deployment

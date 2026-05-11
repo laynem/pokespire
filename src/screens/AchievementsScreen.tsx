@@ -1,4 +1,13 @@
 import { useNavigate } from 'react-router-dom';
+import boulderBadge from '../assets/boulder_badge.png';
+import cascadeBadge from '../assets/cascade_badge.png';
+import thunderBadge from '../assets/thunder_badge.png';
+
+const ACHIEVEMENT_IMAGE: Record<string, string> = {
+  beat_brock: boulderBadge,
+  beat_misty: cascadeBadge,
+  beat_lt_surge: thunderBadge,
+};
 import { useRunStore } from '../store/runStore';
 import { MOVES } from '../data/moves';
 import { ITEMS_DATA } from '../data/items';
@@ -118,7 +127,10 @@ export default function AchievementsScreen() {
 
                       {/* Icon */}
                       <div className={`flex items-center justify-center mt-2 ${a.unlocked ? '' : 'grayscale opacity-30'}`}>
-                        <span style={{ fontSize: '3rem', lineHeight: 1 }}>{a.icon}</span>
+                        {ACHIEVEMENT_IMAGE[a.id]
+                          ? <img src={ACHIEVEMENT_IMAGE[a.id]} alt={a.name} className="w-14 h-14 object-contain drop-shadow" />
+                          : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{a.icon}</span>
+                        }
                       </div>
 
                       {/* Status / progress */}

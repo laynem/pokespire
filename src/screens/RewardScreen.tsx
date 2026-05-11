@@ -112,7 +112,7 @@ export default function RewardScreen() {
                     <span className="font-bold text-white">{lu.pokemonName}</span>
                     <span className="text-yellow-400 font-semibold text-sm">Lv{lu.newLevel} ↑</span>
                   </div>
-                  <StatBars stats={lu.newBaseStats} />
+                  <StatBars stats={lu.newBaseStats} level={lu.newLevel} />
                 </div>
               ))}
             </div>

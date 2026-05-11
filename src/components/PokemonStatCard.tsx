@@ -48,7 +48,7 @@ export default function PokemonStatCard({ pokemon, selected = false, onClick }: 
         ))}
       </div>
 
-      <StatBars stats={pokemon.baseStats} />
+      <StatBars stats={pokemon.baseStats} level={pokemon.level} />
     </button>
   );
 }

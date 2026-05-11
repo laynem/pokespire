@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePokemonSprite } from '../hooks/usePokemon';
 import StatBars from '../components/StatBars';
 import { buildPokemon, getStarterOptions } from '../utils/pokemonFactory';
-import { POKEMON_TEMPLATES } from '../data/pokemon';
 import { getStarterDeck } from '../data/starterDecks';
 import { useRunStore } from '../store/runStore';
 import MoveCard from '../components/MoveCard';
 import { getEnergyCost } from '../utils/combatEngine';
-import type { PokemonType } from '../types';
+import type { Pokemon, PokemonType } from '../types';
 
 const TYPE_COLORS: Record<string, string> = {
   Normal: 'bg-gray-500',
@@ -55,15 +54,12 @@ function StarterSprite({ pokemonId }: { pokemonId: number }) {
 }
 
 interface StarterCardProps {
-  pokemonId: number;
+  pokemon: Pokemon;
   selected: boolean;
   onSelect: () => void;
 }
 
-function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
-  const template = POKEMON_TEMPLATES[pokemonId];
-  if (!template) return null;
-
+function StarterCard({ pokemon, selected, onSelect }: StarterCardProps) {
   return (
     <button
       onClick={onSelect}
@@ -74,12 +70,15 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
           : 'border-gray-600 bg-gray-800 hover:border-gray-400'}
       `}
     >
-      <StarterSprite pokemonId={pokemonId} />
-      <p className="font-bold text-lg">{template.name}</p>
-      <div className="flex gap-1 flex-wrap justify-center">
-        {template.types.map((t) => <TypeBadge key={t} type={t} />)}
+      <StarterSprite pokemonId={pokemon.id} />
+      <div className="flex items-center gap-2">
+        <p className="font-bold text-lg">{pokemon.name}</p>
+        <span className="text-xs text-gray-400 bg-gray-700 px-1.5 py-0.5 rounded">Lv.{pokemon.level}</span>
       </div>
-      <StatBars stats={template.baseStats} />
+      <div className="flex gap-1 flex-wrap justify-center">
+        {pokemon.types.map((t) => <TypeBadge key={t} type={t} />)}
+      </div>
+      <StatBars stats={pokemon.baseStats} level={pokemon.level} />
     </button>
   );
 }
@@ -87,17 +86,19 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
 export default function StarterSelectScreen() {
   const navigate = useNavigate();
   const startRun = useRunStore((s) => s.startRun);
-  const starters = getStarterOptions();
-  const [selectedId, setSelectedId] = useState<number>(starters[0].id);
+  const starterPokemon = useMemo(
+    () => getStarterOptions().map(({ id }) => buildPokemon(id, 5)),
+    [],
+  );
+  const [selectedId, setSelectedId] = useState<number>(starterPokemon[0].id);
 
-  const selectedTemplate = POKEMON_TEMPLATES[selectedId];
+  const selectedPokemon = starterPokemon.find((p) => p.id === selectedId)!;
   const detailMoves = getStarterDeck(selectedId);
 
   const handleConfirm = () => {
-    const pokemon = buildPokemon(selectedId, 5);
     startRun(
       { id: 'ash', name: 'Ash', sprite: '🧢', starterPokemonId: selectedId },
-      pokemon,
+      selectedPokemon,
     );
     navigate('/map');
   };
@@ -107,21 +108,21 @@ export default function StarterSelectScreen() {
       <h2 className="text-3xl font-bold text-yellow-400">Choose Your Starter</h2>
 
       <div className="grid grid-cols-4 gap-4 w-full max-w-4xl">
-        {starters.map(({ id }) => (
+        {starterPokemon.map((pokemon) => (
           <StarterCard
-            key={id}
-            pokemonId={id}
-            selected={selectedId === id}
-            onSelect={() => setSelectedId(id)}
+            key={pokemon.id}
+            pokemon={pokemon}
+            selected={selectedId === pokemon.id}
+            onSelect={() => setSelectedId(pokemon.id)}
           />
         ))}
       </div>
 
       {/* Starting cards panel */}
-      {selectedTemplate && (
+      {selectedPokemon && (
         <div className="flex flex-col items-center gap-3 w-full max-w-4xl">
           <p className="font-bold text-yellow-400 text-sm uppercase tracking-widest">
-            {selectedTemplate.name} — Starting Cards
+            {selectedPokemon.name} — Starting Cards
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             {detailMoves.map((move) => (

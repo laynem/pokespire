@@ -8,6 +8,10 @@ function calcHp(base: number, level: number): number {
   return Math.floor((2 * base * level) / 100) + level + 10;
 }
 
+function calcStat(base: number, level: number): number {
+  return Math.floor((2 * base * level) / 100) + 5;
+}
+
 // Returns up to 4 moves learnable at the given level (most recently learned)
 function selectMoves(pokemonId: number, level: number): Move[] {
   const moveIds = getMovesAtLevel(pokemonId, level);
@@ -34,7 +38,14 @@ export function buildPokemon(pokemonId: number, level: number, overrideMoveIds?:
     id: template.id,
     name: template.name,
     types: template.types,
-    baseStats: template.baseStats,
+    baseStats: {
+      hp: maxHp,
+      attack: calcStat(template.baseStats.attack, level),
+      defense: calcStat(template.baseStats.defense, level),
+      spAtk: calcStat(template.baseStats.spAtk, level),
+      spDef: calcStat(template.baseStats.spDef, level),
+      speed: calcStat(template.baseStats.speed, level),
+    },
     currentHp: maxHp,
     maxHp,
     level,

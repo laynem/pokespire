@@ -64,14 +64,13 @@ export default function PokedexScreen() {
 
               {caught || seen ? (
                 <img
-                  src={getPokemonSpriteUrl(template.id)}
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${template.id}.png`}
                   alt={template.name}
                   style={{
                     display: 'block',
                     width: '100%',
                     aspectRatio: '1',
                     objectFit: 'contain',
-                    imageRendering: 'pixelated',
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
                   }}
                 />

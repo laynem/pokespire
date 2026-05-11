@@ -15,7 +15,7 @@ export default function LoginScreen() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-8">
-      <img src={logoFull} alt="PokeSpire" className="w-72 drop-shadow-lg" />
+      <img src={logoFull} alt="PokeSpire" className="w-[36rem] drop-shadow-lg" />
 
       <button
         onClick={handleDiscordLogin}

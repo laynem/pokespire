@@ -47,7 +47,7 @@ function StarterSprite({ pokemonId }: { pokemonId: number }) {
     <img
       src={spriteUrl}
       alt=""
-      className="w-full aspect-square object-contain scale-[1.35]"
+      className="w-full aspect-square object-contain scale-[1.6]"
       style={{ imageRendering: 'pixelated' }}
     />
   );

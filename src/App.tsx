@@ -53,16 +53,34 @@ function AnimatedRoutes() {
     };
   }, [user]);
 
+  const footer = (
+    <footer className="shrink-0 py-2 text-center">
+      <p className="text-gray-600 text-xs mx-auto w-3/5">
+        © 2026 PokeSpire — Fan project not affiliated with Nintendo or The Pokémon Company. Pokémon and all related names are trademarks of Nintendo / Game Freak.
+      </p>
+    </footer>
+  );
+
   if (loading || !saveLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex flex-col h-screen bg-gray-900">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+        {footer}
       </div>
     );
   }
 
   if (!user) {
-    return <LoginScreen />;
+    return (
+      <div className="flex flex-col h-screen bg-gray-900">
+        <div className="flex-1 overflow-hidden relative">
+          <LoginScreen />
+        </div>
+        {footer}
+      </div>
+    );
   }
 
   return (
@@ -86,6 +104,7 @@ function AnimatedRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      {footer}
     </div>
   );
 }

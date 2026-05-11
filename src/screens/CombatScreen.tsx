@@ -8,6 +8,9 @@ import { getEnergyCost, awardXp } from '../utils/combatEngine';
 import { buildPokemon } from '../utils/pokemonFactory';
 import { GYM_LEADERS } from '../data/gymLeaders';
 import type { CombatPokemon } from '../utils/combatEngine';
+import enemyMaleLarge from '../assets/enemy_male_large.png';
+import enemyFemaleLarge from '../assets/enemy_female_large.png';
+import enemyBossLarge from '../assets/enemy_boss_large.png';
 
 // ── HP Box (Pokemon game style) ──────────────────────────────────
 
@@ -99,7 +102,7 @@ let dmgIdCounter = 0;
 export default function CombatScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun } = useRunStore();
+  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun, act } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
   const [showGiveUp, setShowGiveUp] = useState(false);
@@ -118,8 +121,21 @@ export default function CombatScreen() {
   const prevPlayerHpRef = useRef<number | null>(null);
   const prevEnemyIdRef = useRef<number | null>(null);
 
-  const bossLeaderId = (location.state as { bossLeaderId?: string } | null)?.bossLeaderId ?? null;
-  const isBoss = bossLeaderId !== null;
+  const locationState = (location.state ?? {}) as {
+    bossLeaderId?: string;
+    battleType?: string;
+    trainerVariant?: 'male' | 'female' | 'boss';
+  };
+  const bossLeaderId = locationState.bossLeaderId ?? null;
+  const battleType = locationState.battleType ?? 'normal_battle';
+  const trainerVariant = locationState.trainerVariant ?? 'male';
+  const isBoss = bossLeaderId !== null || battleType === 'boss';
+
+  // Trainer sprite for enemy side
+  const trainerSpriteUrl =
+    trainerVariant === 'boss' ? enemyBossLarge :
+    trainerVariant === 'female' ? enemyFemaleLarge :
+    enemyMaleLarge;
 
   // Sprites
   const activePlayer = combat.playerParty[0];
@@ -127,20 +143,43 @@ export default function CombatScreen() {
   const { spriteUrl: enemySpriteUrl } = usePokemonSprite(enemy?.id ?? null, false);
   const { spriteUrl: playerSpriteUrl } = usePokemonSprite(activePlayer?.id ?? null, true);
 
+  // Random trainer enemy pool (Pokémon IDs available in the game)
+  const TRAINER_POOL = [1, 4, 7, 10, 13, 16, 19, 25, 39, 41, 43, 54, 58, 66, 74, 79, 81, 92];
+
+  function buildTrainerEnemy(level: number) {
+    const id = TRAINER_POOL[Math.floor(Math.random() * TRAINER_POOL.length)];
+    return buildPokemon(id, level);
+  }
+
   // Init
   useEffect(() => {
     if (combat.playerParty.length === 0 && party.length > 0) {
       if (isBoss && bossLeaderId) {
+        // Gym leader boss fight
         const leader = GYM_LEADERS[bossLeaderId];
         const first = leader.team[0];
         const leadPokemon = buildPokemon(first.pokemonId, first.level, first.moveIds);
         const remainingTeam = leader.team.slice(1).map((m) => buildPokemon(m.pokemonId, m.level, m.moveIds));
         combat.startCombat(party, leadPokemon, runItems, { leaderId: bossLeaderId, remainingTeam, bossName: leader.name, badges });
+      } else if (battleType === 'elite_battle') {
+        // Elite battle: 2/3/4 Pokémon depending on act
+        const partySize = act === 1 ? 2 : act === 2 ? 3 : 4;
+        const baseLevel = 3 + (act - 1) * 4 + Math.floor(Math.random() * 3);
+        const lead = buildTrainerEnemy(baseLevel);
+        const remainingTeam = Array.from({ length: partySize - 1 }, () =>
+          buildTrainerEnemy(baseLevel + Math.floor(Math.random() * 2))
+        );
+        combat.startCombat(party, lead, runItems, {
+          leaderId: '__elite__',
+          remainingTeam,
+          bossName: 'Elite Trainer',
+          badges,
+        });
       } else {
-        const wildId = [1, 4, 7, 25][Math.floor(Math.random() * 4)];
-        const wildLevel = 3 + Math.floor(Math.random() * 5);
-        const wildEnemy = buildPokemon(wildId, wildLevel);
-        combat.startCombat(party, wildEnemy, runItems);
+        // Normal trainer battle: 1 Pokémon
+        const baseLevel = 3 + (act - 1) * 4 + Math.floor(Math.random() * 3);
+        const trainerEnemy = buildTrainerEnemy(baseLevel);
+        combat.startCombat(party, trainerEnemy, runItems);
       }
     }
   }, []); // eslint-disable-line
@@ -212,7 +251,7 @@ export default function CombatScreen() {
         if (updateItems) updateItems(combat.items);
         let gold = 10 + Math.floor(Math.random() * 11);
         if (combat.items.some((i) => i.id === 'amulet_coin')) gold = Math.floor(gold * 1.5);
-        const winBossLeaderId = combat.bossLeaderId;
+        const winBossLeaderId = combat.bossLeaderId !== '__elite__' ? combat.bossLeaderId : null;
         combat.clearCombat();
         if (winBossLeaderId) navigate('/boss-reward', { state: { bossLeaderId: winBossLeaderId, gold, levelUps } });
         else navigate('/reward', { state: { gold, levelUps } });
@@ -231,21 +270,25 @@ export default function CombatScreen() {
 
   const isPlayerTurn = combat.phase === 'player';
 
-  const bossData = isBoss && bossLeaderId ? GYM_LEADERS[bossLeaderId] : null;
+  const bossData = bossLeaderId ? GYM_LEADERS[bossLeaderId] : null;
   const bgClass = bossData?.bgClass ?? 'bg-sky-900';
+  const isElite = battleType === 'elite_battle';
 
   return (
     <div className="absolute inset-0 flex flex-col overflow-hidden text-white">
 
       {/* ══ BATTLEFIELD (fills all height, hand floats over it) ═══ */}
-      <div className={`flex-1 relative overflow-hidden ${isBoss ? bgClass : ''}`}>
+      <div className={`flex-1 relative overflow-hidden ${isBoss ? bgClass : isElite ? 'bg-indigo-950' : ''}`}>
 
         {/* Background */}
         {isBoss ? (
           // Boss: dark gym bg with overlay
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
+        ) : isElite ? (
+          // Elite: darker dramatic sky
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/80 to-purple-950/90" />
         ) : (
-          // Wild: sky + grass
+          // Normal trainer: sky + grass
           <>
             <div className="absolute inset-0 bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-100" />
             <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-emerald-500 to-emerald-700" />
@@ -253,11 +296,13 @@ export default function CombatScreen() {
           </>
         )}
 
-        {/* Boss banner */}
-        {bossData && (
+        {/* Trainer banner */}
+        {(bossData || isElite) && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 text-center z-10">
-            <p className="text-yellow-300 font-bold text-base drop-shadow-lg">{bossData.name}</p>
-            <p className="text-gray-300 text-xs">{bossData.title}</p>
+            <p className="text-yellow-300 font-bold text-base drop-shadow-lg">
+              {bossData ? bossData.name : 'Elite Trainer'}
+            </p>
+            {bossData && <p className="text-gray-300 text-xs">{bossData.title}</p>}
             {combat.enemyParty.length > 0 && (
               <p className="text-gray-400 text-xs mt-0.5">
                 Up next: {combat.enemyParty.map((p) => p.name).join(', ')}
@@ -266,7 +311,7 @@ export default function CombatScreen() {
           </div>
         )}
 
-        {/* Enemy: HP box top-left, sprite top-right */}
+        {/* Enemy: HP box top-left, trainer sprite + pokemon sprite top-right */}
         <div className="absolute top-4 left-4 z-10">
           <PokemonHpBox pokemon={enemy} />
           {combat.enemyIntent && (
@@ -277,19 +322,27 @@ export default function CombatScreen() {
           )}
         </div>
 
-        <div className="absolute top-8 right-6 z-10">
-          <div className="relative">
+        <div className="absolute top-4 right-4 z-10 flex flex-col items-center">
+          {/* Trainer sprite */}
+          <img
+            src={trainerSpriteUrl}
+            alt="enemy trainer"
+            className="w-20 h-20 object-contain drop-shadow-lg"
+            style={{ imageRendering: 'pixelated' }}
+          />
+          {/* Enemy Pokémon sprite */}
+          <div className="relative mt-1">
             <DamageFloat nums={enemyDmgNums} />
             {enemySpriteUrl ? (
               <img
                 key={enemyHitKey}
                 src={enemySpriteUrl}
                 alt={enemy.name}
-                className={`w-36 h-36 object-contain drop-shadow-xl ${enemyHitKey > 0 ? 'animate-flash-white' : ''} ${enemyFainting ? 'animate-faint-fall' : ''}`}
+                className={`w-28 h-28 object-contain drop-shadow-xl ${enemyHitKey > 0 ? 'animate-flash-white' : ''} ${enemyFainting ? 'animate-faint-fall' : ''}`}
                 style={{ imageRendering: 'pixelated' }}
               />
             ) : (
-              <div className="w-36 h-36 flex items-center justify-center text-5xl">🔴</div>
+              <div className="w-28 h-28 flex items-center justify-center text-5xl">🔴</div>
             )}
           </div>
         </div>

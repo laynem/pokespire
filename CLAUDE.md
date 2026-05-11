@@ -42,17 +42,23 @@ Claude has full credentials for all environments — do NOT ask the user for key
 - Service role key: stored in .env.local as SUPABASE_SERVICE_ROLE_KEY (user has provided this 3 times — do NOT ask again, read it from .env.local)
 
 ## Oracle Cloud Deployment
+- URL: http://pokespire.teckem.com
 - IP: 163.192.32.60 (ubuntu user)
 - SSH key: C:/Users/lmats/.ssh/ssh-key-2026-04-08 (1).key
-- Deploy path: /home/ubuntu/pokespire/dist
+- Nginx root (what gets served): /var/www/pokespire
+- Staging path: /home/ubuntu/pokespire/dist
 - Static files only — no Docker, no git repo, no server process on Oracle
 
 ### Deploy steps
 1. `git push origin`
 2. `npm run build` — fix TS errors first (runs tsc -b && vite build)
 3. `scp -i "C:/Users/lmats/.ssh/ssh-key-2026-04-08 (1).key" -r D:/claude/PokeSpire/dist/* ubuntu@163.192.32.60:/home/ubuntu/pokespire/dist/`
-4. Verify: `ssh -i "C:/Users/lmats/.ssh/ssh-key-2026-04-08 (1).key" ubuntu@163.192.32.60 "ls -lh /home/ubuntu/pokespire/dist/"`
+4. `ssh ... "sudo cp -r /home/ubuntu/pokespire/dist/* /var/www/pokespire/ && sudo chown -R www-data:www-data /var/www/pokespire"`
+5. Verify: `ssh ... "ls -lh /var/www/pokespire/"`
 - rsync not available locally — always use scp
+
+## Asset Safety
+- **Never delete any files in `src/assets/` or `public/` without explicit user approval.** Ask first, always.
 
 ## Issues
 - Issue files: D:/claude/PokeSpire/issues/ (13 total, all completed)

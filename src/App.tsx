@@ -12,8 +12,11 @@ import BossRewardScreen from './screens/BossRewardScreen';
 import CatchScreen from './screens/CatchScreen';
 import PokemonCenterScreen from './screens/PokemonCenterScreen';
 import PokeMartScreen from './screens/PokeMartScreen';
+import PokedexScreen from './screens/PokedexScreen';
+import CollectionScreen from './screens/CollectionScreen';
+import AchievementsScreen from './screens/AchievementsScreen';
 
-const NO_HEADER_ROUTES = new Set(['/']);
+const NO_HEADER_ROUTES = new Set(['/', '/pokedex', '/collection', '/achievements']);
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -36,6 +39,9 @@ function AnimatedRoutes() {
           <Route path="/mart" element={<PokeMartScreen />} />
           <Route path="/boss-reward" element={<BossRewardScreen />} />
           <Route path="/victory" element={<VictoryScreen />} />
+          <Route path="/pokedex" element={<PokedexScreen />} />
+          <Route path="/collection" element={<CollectionScreen />} />
+          <Route path="/achievements" element={<AchievementsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

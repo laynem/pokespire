@@ -102,7 +102,7 @@ let dmgIdCounter = 0;
 export default function CombatScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun, act } = useRunStore();
+  const { party, items: runItems, badges, currentNodeId, clearNode, updateParty, updateItems, endRun, act, addSeenPokemon } = useRunStore();
   const combat = useCombatStore();
   const [showSwitch, setShowSwitch] = useState(false);
   const [showGiveUp, setShowGiveUp] = useState(false);
@@ -160,6 +160,8 @@ export default function CombatScreen() {
         const first = leader.team[0];
         const leadPokemon = buildPokemon(first.pokemonId, first.level, first.moveIds);
         const remainingTeam = leader.team.slice(1).map((m) => buildPokemon(m.pokemonId, m.level, m.moveIds));
+        addSeenPokemon(first.pokemonId);
+        leader.team.slice(1).forEach((m) => addSeenPokemon(m.pokemonId));
         combat.startCombat(party, leadPokemon, runItems, { leaderId: bossLeaderId, remainingTeam, bossName: leader.name, badges });
       } else if (battleType === 'elite_battle') {
         // Elite battle: 2/3/4 Pokémon depending on act
@@ -169,6 +171,8 @@ export default function CombatScreen() {
         const remainingTeam = Array.from({ length: partySize - 1 }, () =>
           buildTrainerEnemy(baseLevel + Math.floor(Math.random() * 2))
         );
+        addSeenPokemon(lead.id);
+        remainingTeam.forEach((p) => addSeenPokemon(p.id));
         combat.startCombat(party, lead, runItems, {
           leaderId: '__elite__',
           remainingTeam,
@@ -179,6 +183,7 @@ export default function CombatScreen() {
         // Normal trainer battle: 1 Pokémon
         const baseLevel = 3 + (act - 1) * 4 + Math.floor(Math.random() * 3);
         const trainerEnemy = buildTrainerEnemy(baseLevel);
+        addSeenPokemon(trainerEnemy.id);
         combat.startCombat(party, trainerEnemy, runItems);
       }
     }

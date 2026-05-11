@@ -93,4 +93,10 @@ export interface RunState {
   totalGoldEarned: number;
   inRun: boolean;
   seed: number;
+  // Meta-progression (persists across runs)
+  seenPokemon: number[];
+  caughtPokemon: number[];
+  collectedCards: string[];
+  foundItems: string[];
+  defeatedGyms: string[];
 }

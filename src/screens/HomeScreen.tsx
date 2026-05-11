@@ -24,6 +24,24 @@ export default function HomeScreen() {
         >
           New Run
         </button>
+        <button
+          onClick={() => navigate('/pokedex')}
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Pokédex
+        </button>
+        <button
+          onClick={() => navigate('/collection')}
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Collection
+        </button>
+        <button
+          onClick={() => navigate('/achievements')}
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Achievements
+        </button>
       </div>
     </div>
   );

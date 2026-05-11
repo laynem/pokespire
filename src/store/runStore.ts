@@ -20,6 +20,8 @@ interface RunActions {
   incrementMovesLearned: () => void;
   setMap: (nodes: MapNode[]) => void;
   advanceAct: () => void;
+  addSeenPokemon: (id: number) => void;
+  addCaughtPokemon: (id: number) => void;
 }
 
 const initialState: RunState = {
@@ -36,6 +38,11 @@ const initialState: RunState = {
   totalGoldEarned: 0,
   inRun: false,
   seed: 0,
+  seenPokemon: [],
+  caughtPokemon: [],
+  collectedCards: [],
+  foundItems: [],
+  defeatedGyms: [],
 };
 
 export const useRunStore = create<RunState & RunActions>()(
@@ -44,23 +51,47 @@ export const useRunStore = create<RunState & RunActions>()(
       ...initialState,
 
       startRun: (trainer, starterPokemon) =>
-        set({
-          trainer,
-          party: [starterPokemon],
-          currentMap: [],
-          currentNodeId: null,
-          act: 1,
-          gold: 100,
-          items: [],
-          badges: [],
-          pokemonCaught: 0,
-          movesLearned: 0,
-          totalGoldEarned: 100,
-          inRun: true,
-          seed: Date.now(),
+        set((state) => {
+          const seen = state.seenPokemon.includes(starterPokemon.id)
+            ? state.seenPokemon
+            : [...state.seenPokemon, starterPokemon.id];
+          const caught = state.caughtPokemon.includes(starterPokemon.id)
+            ? state.caughtPokemon
+            : [...state.caughtPokemon, starterPokemon.id];
+          const newMoveIds = starterPokemon.moves
+            .map((m) => m.id)
+            .filter((id) => !state.collectedCards.includes(id));
+          return {
+            trainer,
+            party: [starterPokemon],
+            currentMap: [],
+            currentNodeId: null,
+            act: 1,
+            gold: 100,
+            items: [],
+            badges: [],
+            pokemonCaught: 0,
+            movesLearned: 0,
+            totalGoldEarned: 100,
+            inRun: true,
+            seed: Date.now(),
+            seenPokemon: seen,
+            caughtPokemon: caught,
+            collectedCards: [...state.collectedCards, ...newMoveIds],
+            foundItems: state.foundItems,
+            defeatedGyms: state.defeatedGyms,
+          };
         }),
 
-      endRun: () => set({ ...initialState }),
+      endRun: () =>
+        set((state) => ({
+          ...initialState,
+          seenPokemon: state.seenPokemon,
+          caughtPokemon: state.caughtPokemon,
+          collectedCards: state.collectedCards,
+          foundItems: state.foundItems,
+          defeatedGyms: state.defeatedGyms,
+        })),
 
       setCurrentNode: (nodeId) => set({ currentNodeId: nodeId }),
 
@@ -85,7 +116,12 @@ export const useRunStore = create<RunState & RunActions>()(
       },
 
       addItem: (item) =>
-        set((state) => ({ items: [...state.items, item] })),
+        set((state) => ({
+          items: [...state.items, item],
+          foundItems: state.foundItems.includes(item.id)
+            ? state.foundItems
+            : [...state.foundItems, item.id],
+        })),
 
       removeItem: (itemId) =>
         set((state) => ({ items: state.items.filter((i) => i.id !== itemId) })),
@@ -103,7 +139,10 @@ export const useRunStore = create<RunState & RunActions>()(
           const pokemon = party[pokemonIndex];
           if (!pokemon || pokemon.moves.some((m) => m.id === move.id)) return {};
           party[pokemonIndex] = { ...pokemon, moves: [...pokemon.moves, move] };
-          return { party };
+          const collectedCards = state.collectedCards.includes(move.id)
+            ? state.collectedCards
+            : [...state.collectedCards, move.id];
+          return { party, collectedCards };
         }),
 
       addBadge: (badge) =>
@@ -111,6 +150,9 @@ export const useRunStore = create<RunState & RunActions>()(
           badges: state.badges.includes(badge)
             ? state.badges
             : [...state.badges, badge],
+          defeatedGyms: state.defeatedGyms.includes(badge)
+            ? state.defeatedGyms
+            : [...state.defeatedGyms, badge],
         })),
 
       incrementPokemonCaught: () =>
@@ -126,6 +168,23 @@ export const useRunStore = create<RunState & RunActions>()(
           act: state.act + 1,
           currentMap: [],
           currentNodeId: null,
+        })),
+
+      addSeenPokemon: (id) =>
+        set((state) => ({
+          seenPokemon: state.seenPokemon.includes(id)
+            ? state.seenPokemon
+            : [...state.seenPokemon, id],
+        })),
+
+      addCaughtPokemon: (id) =>
+        set((state) => ({
+          seenPokemon: state.seenPokemon.includes(id)
+            ? state.seenPokemon
+            : [...state.seenPokemon, id],
+          caughtPokemon: state.caughtPokemon.includes(id)
+            ? state.caughtPokemon
+            : [...state.caughtPokemon, id],
         })),
     }),
     {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { buildPokemon } from '../utils/pokemonFactory';
@@ -59,13 +59,18 @@ function getMovesForPokemon(pokemon: Pokemon): Move[] {
 
 export default function CatchScreen() {
   const navigate = useNavigate();
-  const { act, party, updateParty, clearNode, currentNodeId } = useRunStore();
+  const { act, party, updateParty, clearNode, currentNodeId, addSeenPokemon, addCaughtPokemon } = useRunStore();
 
   const level = medianLevel(party);
   const offerings = useMemo(() => buildOfferings(act, level), []); // eslint-disable-line
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [swapTarget, setSwapTarget] = useState<number | null>(null);
+
+  // Mark all offerings as seen when the screen loads
+  useEffect(() => {
+    offerings.forEach((p) => addSeenPokemon(p.id));
+  }, []); // eslint-disable-line
 
   const partyFull = party.length >= 6;
   const selectedPokemon = selectedIndex !== null ? offerings[selectedIndex] : null;
@@ -84,6 +89,7 @@ export default function CatchScreen() {
       updateParty(newParty);
     }
 
+    addCaughtPokemon(chosen.id);
     if (currentNodeId) clearNode(currentNodeId);
     navigate('/map');
   }

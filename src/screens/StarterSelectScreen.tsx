@@ -59,6 +59,16 @@ interface StarterCardProps {
   onSelect: () => void;
 }
 
+const STAT_BARS = [
+  { key: 'hp',      label: 'HP',  color: 'bg-green-500' },
+  { key: 'attack',  label: 'ATK', color: 'bg-red-500'   },
+  { key: 'defense', label: 'DEF', color: 'bg-yellow-500' },
+  { key: 'spAtk',   label: 'SpA', color: 'bg-blue-500'  },
+  { key: 'spDef',   label: 'SpD', color: 'bg-teal-500'  },
+] as const;
+
+const STAT_MAX = 150;
+
 function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
   const template = POKEMON_TEMPLATES[pokemonId];
   if (!template) return null;
@@ -78,7 +88,23 @@ function StarterCard({ pokemonId, selected, onSelect }: StarterCardProps) {
       <div className="flex gap-1 flex-wrap justify-center">
         {template.types.map((t) => <TypeBadge key={t} type={t} />)}
       </div>
-      <p className="text-sm text-gray-400">HP: <span className="text-white">{template.baseStats.hp}</span></p>
+      <div className="w-full flex flex-col gap-1 mt-1">
+        {STAT_BARS.map(({ key, label, color }) => {
+          const value = template.baseStats[key];
+          return (
+            <div key={key} className="flex items-center gap-1.5 text-xs">
+              <span className="w-7 text-gray-400 shrink-0">{label}</span>
+              <div className="flex-1 bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`${color} h-full rounded-full`}
+                  style={{ width: `${Math.min((value / STAT_MAX) * 100, 100)}%` }}
+                />
+              </div>
+              <span className="w-6 text-right text-gray-300 shrink-0">{value}</span>
+            </div>
+          );
+        })}
+      </div>
     </button>
   );
 }

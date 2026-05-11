@@ -59,7 +59,7 @@ export default function CharacterSelectScreen() {
             disabled={t.locked}
             onClick={() => setSelected(t.id)}
             className={`
-              relative flex flex-col items-center gap-2 rounded-xl border-2 p-5 w-36 transition
+              relative flex flex-col items-center gap-2 rounded-xl border-2 p-5 w-52 transition
               ${t.locked
                 ? 'border-gray-700 bg-gray-800 opacity-40 cursor-not-allowed'
                 : selected === t.id
@@ -73,7 +73,7 @@ export default function CharacterSelectScreen() {
             <img
               src={t.sprite}
               alt={t.name}
-              className="w-20 h-20 object-contain object-top"
+              className="w-40 h-40 object-contain object-top"
               style={{ imageRendering: 'pixelated' }}
             />
             <span className="font-semibold">{t.name}</span>
@@ -82,7 +82,7 @@ export default function CharacterSelectScreen() {
       </div>
 
       {/* Detail panel */}
-      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-md flex flex-col gap-3">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-[656px] flex flex-col gap-3">
         <p className="text-gray-400 text-sm italic">{selectedTrainer.flavour}</p>
         <div className="border-t border-gray-700 pt-3">
           <p className="text-yellow-400 font-semibold text-sm">Passive — {selectedTrainer.passive}</p>

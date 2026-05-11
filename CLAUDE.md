@@ -14,6 +14,8 @@
 3. **Announce each step** when complete + show updated checklist
 4. **Code review** — run a review/test agent before committing
 5. **Push to GitHub** after every completed step with a short, direct commit message
+   - After every `git push`, tell the user the commit ID and commit name
+6. **Oracle deploy** — after every `scp` deploy to Oracle, notify the user it's done
 
 ## Stack
 - Vite + React + TypeScript

@@ -1,10 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
+import { supabase } from '../lib/supabase';
 import logoFull from '../assets/logo_full.png';
 
 export default function HomeScreen() {
   const navigate = useNavigate();
   const inRun = useRunStore((s) => s.inRun);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-6">
@@ -23,6 +28,12 @@ export default function HomeScreen() {
           className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-3 px-6 rounded-lg transition"
         >
           New Run
+        </button>
+        <button
+          onClick={handleLogout}
+          className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-3 px-6 rounded-lg transition"
+        >
+          Log Out
         </button>
       </div>
     </div>

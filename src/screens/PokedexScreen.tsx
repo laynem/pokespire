@@ -25,9 +25,9 @@ export default function PokedexScreen() {
   const total = allPokemon.length;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="h-full bg-gray-900 text-white flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
+      <div className="shrink-0 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/')}
           className="text-gray-400 hover:text-white transition text-lg leading-none"
@@ -42,6 +42,8 @@ export default function PokedexScreen() {
         </div>
       </div>
 
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto subtle-scroll">
       {/* Grid */}
       <div className="p-6 grid grid-cols-5 gap-4 max-w-5xl mx-auto w-full">
         {allPokemon.map((template) => {
@@ -117,6 +119,7 @@ export default function PokedexScreen() {
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-full bg-gray-800 border border-gray-700 inline-block" /> Unknown
         </span>
+      </div>
       </div>
     </div>
   );

@@ -44,7 +44,7 @@ export default function PokedexScreen() {
       </div>
 
       {/* Grid */}
-      <div className="p-6 grid grid-cols-8 gap-4 max-w-6xl mx-auto w-full">
+      <div className="p-6 grid grid-cols-6 gap-4 max-w-6xl mx-auto w-full">
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);
@@ -66,14 +66,15 @@ export default function PokedexScreen() {
                 <img
                   src={getPokemonSpriteUrl(template.id)}
                   alt={template.name}
-                  className="w-16 h-16 object-contain"
+                  className="w-20 h-20 object-contain"
                   style={{
                     imageRendering: 'pixelated',
+                    zoom: 5,
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
                   }}
                 />
               ) : (
-                <div className="w-16 h-16 flex items-center justify-center">
+                <div className="w-20 h-20 flex items-center justify-center">
                   <span className="text-gray-600 text-3xl font-bold">?</span>
                 </div>
               )}

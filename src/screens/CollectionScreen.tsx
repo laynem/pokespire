@@ -66,36 +66,37 @@ export default function CollectionScreen() {
 
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(10.5rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
 
             if (collected) {
               return (
-                <MoveCard
-                  key={move.id}
-                  move={move}
-                  energyCost={getEnergyCost(move)}
-                  currentPp={move.maxPp}
-                  disabled={false}
-                  onClick={() => {}}
-                />
+                <div key={move.id} style={{ zoom: 0.61 }}>
+                  <MoveCard
+                    move={move}
+                    energyCost={getEnergyCost(move)}
+                    currentPp={move.maxPp}
+                    disabled={false}
+                    onClick={() => {}}
+                  />
+                </div>
               );
             }
 
             return (
-              <div key={move.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
+              <div key={move.id} className="relative select-none">
                 <div
                   className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
-                  style={{ width: 30, height: 30, top: 0, left: 0 }}
+                  style={{ width: 20, height: 20, top: 4, left: 4 }}
                 >
-                  <span className="text-gray-500 text-sm font-bold leading-none">?</span>
+                  <span className="text-gray-500 text-xs font-bold leading-none">?</span>
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                  style={{ width: '8.75rem', height: '12.5rem' }}
+                  style={{ width: '100%', aspectRatio: '7/10' }}
                 >
-                  <span className="text-3xl mb-2 opacity-30">❓</span>
+                  <span className="text-xl mb-1 opacity-30">❓</span>
                   <span className="text-gray-600 text-xs font-bold">???</span>
                 </div>
               </div>
@@ -106,57 +107,56 @@ export default function CollectionScreen() {
 
       {/* Items tab */}
       {tab === 'items' && (
-        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(10.5rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 
             if (found) {
               return (
-                <div key={item.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
-                  <div
-                    className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
-                    style={{ width: '8.75rem', height: '12.5rem' }}
-                  >
-                    <div className="pt-2 pb-1 px-2 text-center">
-                      <span
-                        className="text-white font-bold drop-shadow leading-tight"
-                        style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.75rem' }}
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-center mt-1">
-                      {item.sprite
-                        ? <img src={item.sprite} alt={item.name} className="w-10 h-10 object-contain" style={{ imageRendering: 'pixelated' }} />
-                        : <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{item.icon}</span>
-                      }
-                    </div>
-                    <div className="flex-1 flex items-center justify-center px-2">
-                      <span
-                        className="text-gray-300 text-center leading-tight"
-                        style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.55rem' }}
-                      >
-                        {item.description}
-                      </span>
-                    </div>
+                <div
+                  key={item.id}
+                  className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
+                  style={{ width: '100%', aspectRatio: '7/10' }}
+                >
+                  <div className="pt-1 pb-0 px-1 text-center">
+                    <span
+                      className="text-white font-bold drop-shadow leading-tight"
+                      style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.6rem' }}
+                    >
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center">
+                    {item.sprite
+                      ? <img src={item.sprite} alt={item.name} className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
+                      : <span style={{ fontSize: '2rem', lineHeight: 1 }}>{item.icon}</span>
+                    }
+                  </div>
+                  <div className="flex items-center justify-center px-1 pb-1">
+                    <span
+                      className="text-gray-300 text-center leading-tight"
+                      style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.45rem' }}
+                    >
+                      {item.description}
+                    </span>
                   </div>
                 </div>
               );
             }
 
             return (
-              <div key={item.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
+              <div key={item.id} className="relative select-none">
                 <div
                   className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
-                  style={{ width: 30, height: 30, top: 0, left: 0 }}
+                  style={{ width: 20, height: 20, top: 4, left: 4 }}
                 >
-                  <span className="text-gray-500 text-sm font-bold leading-none">?</span>
+                  <span className="text-gray-500 text-xs font-bold leading-none">?</span>
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
-                  style={{ width: '8.75rem', height: '12.5rem' }}
+                  style={{ width: '100%', aspectRatio: '7/10' }}
                 >
-                  <span className="text-3xl mb-2 opacity-30">❓</span>
+                  <span className="text-xl mb-1 opacity-30">❓</span>
                   <span className="text-gray-600 text-xs font-bold">???</span>
                 </div>
               </div>

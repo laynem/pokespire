@@ -45,7 +45,7 @@ export default function PokedexScreen() {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto subtle-scroll">
       {/* Grid */}
-      <div className="px-4 pt-6 pb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
+      <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);
@@ -56,17 +56,17 @@ export default function PokedexScreen() {
                 key={template.id}
                 className={`flex flex-col rounded-xl border-2 bg-gray-800 overflow-hidden select-none
                   ${caught ? 'border-yellow-400/80' : 'border-gray-500/50'}`}
-                style={{ width: '8.75rem', height: '12.5rem' }}
+                style={{ width: '100%', aspectRatio: '7/10' }}
               >
-                <div className="pt-2 pb-0 px-2 text-center">
+                <div className="pt-1 pb-0 px-1 text-center">
                   <span
                     className={`font-bold drop-shadow leading-tight ${caught ? 'text-white' : 'text-gray-400'}`}
-                    style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.8rem' }}
+                    style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.6rem' }}
                   >
                     {template.name}
                   </span>
                 </div>
-                <div className="flex-1 flex items-center justify-center px-2">
+                <div className="flex-1 flex items-center justify-center px-1">
                   <img
                     src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${template.id}.png`}
                     alt={template.name}
@@ -78,18 +78,18 @@ export default function PokedexScreen() {
                     }}
                   />
                 </div>
-                <div className="pb-2 flex gap-0.5 flex-wrap justify-center px-1">
+                <div className="pb-1 flex gap-0.5 flex-wrap justify-center px-1">
                   {caught ? (
                     template.types.map((t) => (
                       <span
                         key={t}
-                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[9px] px-1.5 py-0.5 rounded`}
+                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[8px] px-1 py-0.5 rounded`}
                       >
                         {t}
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-600 text-[9px]">#{template.id}</span>
+                    <span className="text-gray-600 text-[8px]">#{template.id}</span>
                   )}
                 </div>
               </div>
@@ -97,13 +97,20 @@ export default function PokedexScreen() {
           }
 
           return (
-            <div
-              key={template.id}
-              className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50 select-none"
-              style={{ width: '8.75rem', height: '12.5rem' }}
-            >
-              <span className="text-3xl mb-2 opacity-30">❓</span>
-              <span className="text-gray-600 text-xs font-bold">???</span>
+            <div key={template.id} className="relative select-none">
+              <div
+                className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
+                style={{ width: 20, height: 20, top: 4, left: 4 }}
+              >
+                <span className="text-gray-500 text-xs font-bold leading-none">?</span>
+              </div>
+              <div
+                className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
+                style={{ width: '100%', aspectRatio: '7/10' }}
+              >
+                <span className="text-xl mb-1 opacity-30">❓</span>
+                <span className="text-gray-600 text-xs font-bold">???</span>
+              </div>
             </div>
           );
         })}

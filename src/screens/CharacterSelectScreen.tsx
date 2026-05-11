@@ -59,7 +59,7 @@ export default function CharacterSelectScreen() {
             disabled={t.locked}
             onClick={() => setSelected(t.id)}
             className={`
-              relative flex flex-col items-center gap-2 rounded-xl border-2 p-5 w-52 transition
+              relative flex flex-col items-center gap-2 rounded-xl border-2 p-5 w-52 transition overflow-hidden
               ${t.locked
                 ? 'border-gray-700 bg-gray-800 opacity-40 cursor-not-allowed'
                 : selected === t.id
@@ -73,10 +73,10 @@ export default function CharacterSelectScreen() {
             <img
               src={t.sprite}
               alt={t.name}
-              className="w-40 h-40 object-contain object-top"
+              className="w-full aspect-square object-contain object-top scale-[1.6]"
               style={{ imageRendering: 'pixelated' }}
             />
-            <span className="font-semibold">{t.name}</span>
+            <span className="font-bold text-lg">{t.name}</span>
           </button>
         ))}
       </div>

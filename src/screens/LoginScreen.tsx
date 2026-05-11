@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 import logoFull from '../assets/logo_full.png';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
+  const loginAsGuest = useAuthStore((s) => s.loginAsGuest);
 
   async function handleDiscordLogin() {
     setLoading(true);
@@ -28,7 +30,13 @@ export default function LoginScreen() {
         {loading ? 'Connecting…' : 'Login with Discord'}
       </button>
 
-      <p className="text-gray-500 text-sm">Sign in to save your progress</p>
+      <button
+        onClick={loginAsGuest}
+        className="flex flex-col items-center bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded-xl text-lg transition-colors"
+      >
+        Play as Guest
+        <span className="text-xs font-normal opacity-60">Progress won't be saved</span>
+      </button>
     </div>
   );
 }

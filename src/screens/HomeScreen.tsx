@@ -1,15 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
-import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/authStore';
 import logoFull from '../assets/logo_full.png';
 
 export default function HomeScreen() {
   const navigate = useNavigate();
   const inRun = useRunStore((s) => s.inRun);
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-  }
+  const { isGuest, logout } = useAuthStore();
 
   return (
     <div className="flex flex-col items-center justify-start pt-[20vh] min-h-screen bg-gray-900 text-white gap-6">
@@ -30,28 +27,34 @@ export default function HomeScreen() {
           New Run
         </button>
         <button
-          onClick={() => navigate('/pokedex')}
-          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+          onClick={() => !isGuest && navigate('/pokedex')}
+          disabled={isGuest}
+          className="bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-gray-600"
+          title={isGuest ? 'Sign in to access Pokédex' : undefined}
         >
           Pokédex
         </button>
         <button
-          onClick={() => navigate('/collection')}
-          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+          onClick={() => !isGuest && navigate('/collection')}
+          disabled={isGuest}
+          className="bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-gray-600"
+          title={isGuest ? 'Sign in to access Collection' : undefined}
         >
           Collection
         </button>
         <button
-          onClick={() => navigate('/achievements')}
-          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+          onClick={() => !isGuest && navigate('/achievements')}
+          disabled={isGuest}
+          className="bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-gray-600"
+          title={isGuest ? 'Sign in to access Achievements' : undefined}
         >
           Achievements
         </button>
         <button
-          onClick={handleLogout}
+          onClick={logout}
           className="bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-3 px-6 rounded-lg transition"
         >
-          Log Out
+          {isGuest ? 'Sign In' : 'Log Out'}
         </button>
       </div>
     </div>

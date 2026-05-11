@@ -32,11 +32,16 @@ const NO_HEADER_ROUTES = new Set(['/', '/login', '/pokedex', '/collection', '/ac
 function AnimatedRoutes() {
   const location = useLocation();
   const showHeader = !NO_HEADER_ROUTES.has(location.pathname);
-  const { user, loading } = useAuthStore();
+  const { user, loading, isGuest } = useAuthStore();
   const [saveLoaded, setSaveLoaded] = useState(false);
   useEffect(() => {
     if (!user) {
       useRunStore.getState().endRun();
+      setSaveLoaded(true);
+      return;
+    }
+
+    if (isGuest) {
       setSaveLoaded(true);
       return;
     }
@@ -77,7 +82,7 @@ function AnimatedRoutes() {
     });
 
     return () => unsub();
-  }, [user]);
+  }, [user, isGuest]);
 
   const footer = (
     <footer className="shrink-0 py-2 text-center">

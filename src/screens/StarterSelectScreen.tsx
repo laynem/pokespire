@@ -105,7 +105,7 @@ export default function StarterSelectScreen() {
     <div className="absolute inset-0 bg-gray-900 text-white flex flex-col items-center justify-center px-4 py-6 gap-6 overflow-y-auto">
       <h2 className="text-3xl font-bold text-yellow-400">Choose Your Starter</h2>
 
-      <div className="grid grid-cols-4 gap-4 w-full max-w-2xl">
+      <div className="grid grid-cols-4 gap-4 w-full max-w-4xl">
         {starters.map(({ id }) => (
           <StarterCard
             key={id}
@@ -118,7 +118,7 @@ export default function StarterSelectScreen() {
 
       {/* Starting cards panel */}
       {selectedTemplate && (
-        <div className="flex flex-col items-center gap-3 w-full max-w-2xl">
+        <div className="flex flex-col items-center gap-3 w-full max-w-4xl">
           <p className="font-bold text-yellow-400 text-sm uppercase tracking-widest">
             {selectedTemplate.name} — Starting Cards
           </p>

@@ -85,21 +85,23 @@ export default function CollectionScreen() {
       <div className="flex border-b border-gray-700 max-w-lg mx-auto w-full">
         <button
           onClick={() => setTab('cards')}
-          className={`flex-1 py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 py-2.5 font-semibold transition ${
             tab === 'cards'
               ? 'text-yellow-400 border-b-2 border-yellow-400'
               : 'text-gray-400 hover:text-gray-200'
           }`}
+          style={{ fontSize: '17px' }}
         >
           Cards ({cardsCollected}/{allMoves.length})
         </button>
         <button
           onClick={() => setTab('items')}
-          className={`flex-1 py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 py-2.5 font-semibold transition ${
             tab === 'items'
               ? 'text-yellow-400 border-b-2 border-yellow-400'
               : 'text-gray-400 hover:text-gray-200'
           }`}
+          style={{ fontSize: '17px' }}
         >
           Items ({itemsFound}/{allItems.length})
         </button>
@@ -110,7 +112,7 @@ export default function CollectionScreen() {
 
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
+        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(9.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
 
@@ -120,12 +122,12 @@ export default function CollectionScreen() {
               const icon = TYPE_ICON[move.type];
               const emoji = TYPE_EMOJI[move.type];
               return (
-                <div key={move.id} className="relative select-none">
+                <div key={move.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
                   <div
-                    className="absolute z-10 rounded-full bg-black/80 border-2 border-blue-400 flex items-center justify-center"
-                    style={{ width: 16, height: 16, top: 4, left: 4 }}
+                    className="absolute z-10 rounded-full bg-black/80 border-2 border-blue-400 flex items-center justify-center shadow-lg"
+                    style={{ width: 30, height: 30, top: 0, left: 0 }}
                   >
-                    <span className="text-blue-300 font-bold leading-none" style={{ fontSize: '0.45rem' }}>
+                    <span className="text-blue-300 text-sm font-bold leading-none">
                       {getEnergyCost(move)}
                     </span>
                   </div>
@@ -133,19 +135,19 @@ export default function CollectionScreen() {
                     className="flex flex-col rounded-xl border-2 border-yellow-400/80 overflow-hidden"
                     style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
                   >
-                    <div className="pt-1 px-1 text-center">
-                      <span className="text-white font-bold drop-shadow leading-tight" style={{ fontSize: '0.5rem' }}>
+                    <div className="pt-3 pb-1 px-2 text-center">
+                      <span className="text-white font-bold drop-shadow leading-tight" style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.875rem' }}>
                         {move.name}
                       </span>
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex items-center justify-center mt-2">
                       {icon
-                        ? <img src={icon} alt={move.type} className="w-6 h-6 object-contain drop-shadow" />
-                        : <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{emoji ?? '⬜'}</span>
+                        ? <img src={icon} alt={move.type} className="w-14 h-14 object-contain drop-shadow" />
+                        : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{emoji ?? '⬜'}</span>
                       }
                     </div>
-                    <div className="pb-1 flex items-center justify-center">
-                      <span className="text-white font-bold drop-shadow text-center" style={{ fontSize: '0.45rem' }}>
+                    <div className="flex-1 flex items-center justify-center">
+                      <span className="text-white text-sm font-bold drop-shadow text-center" style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}>
                         {getCardInfo(move)}
                       </span>
                     </div>
@@ -155,12 +157,12 @@ export default function CollectionScreen() {
             }
 
             return (
-              <div key={move.id} className="relative select-none">
+              <div key={move.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
                 <div
                   className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
-                  style={{ width: 20, height: 20, top: 4, left: 4 }}
+                  style={{ width: 30, height: 30, top: 0, left: 0 }}
                 >
-                  <span className="text-gray-500 text-xs font-bold leading-none">?</span>
+                  <span className="text-gray-500 text-sm font-bold leading-none">?</span>
                 </div>
                 <div
                   className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
@@ -177,7 +179,7 @@ export default function CollectionScreen() {
 
       {/* Items tab */}
       {tab === 'items' && (
-        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
+        <div className="p-8 pt-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '1rem 0.5rem', justifyContent: 'center' }}>
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 

@@ -45,7 +45,7 @@ export default function PokedexScreen() {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto subtle-scroll">
       {/* Grid */}
-      <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
+      <div className="p-2 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: '0.5rem' }}>
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);

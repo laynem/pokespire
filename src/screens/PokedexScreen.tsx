@@ -44,7 +44,7 @@ export default function PokedexScreen() {
       </div>
 
       {/* Grid */}
-      <div className="p-3 grid grid-cols-5 gap-2 max-w-lg mx-auto w-full">
+      <div className="p-6 grid grid-cols-8 gap-4 max-w-6xl mx-auto w-full">
         {allPokemon.map((template) => {
           const caught = caughtSet.has(template.id);
           const seen = seenSet.has(template.id);
@@ -52,7 +52,7 @@ export default function PokedexScreen() {
           return (
             <div
               key={template.id}
-              className={`rounded-lg border flex flex-col items-center justify-center p-1.5 gap-0.5 relative
+              className={`rounded-xl border flex flex-col items-center justify-center p-3 gap-1 relative
                 ${caught
                   ? 'bg-gray-800 border-yellow-600/40'
                   : seen
@@ -60,26 +60,26 @@ export default function PokedexScreen() {
                     : 'bg-gray-800/50 border-gray-800'
                 }`}
             >
-              <span className="text-gray-600 text-[10px] absolute top-1 left-1.5">#{template.id}</span>
+              <span className="text-gray-600 text-xs absolute top-1.5 left-2">#{template.id}</span>
 
               {caught || seen ? (
                 <img
                   src={getPokemonSpriteUrl(template.id)}
                   alt={template.name}
-                  className="w-10 h-10 object-contain"
+                  className="w-16 h-16 object-contain"
                   style={{
                     imageRendering: 'pixelated',
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
                   }}
                 />
               ) : (
-                <div className="w-10 h-10 flex items-center justify-center">
-                  <span className="text-gray-600 text-2xl font-bold">?</span>
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <span className="text-gray-600 text-3xl font-bold">?</span>
                 </div>
               )}
 
               <span
-                className={`text-[9px] font-semibold text-center leading-tight truncate w-full text-center
+                className={`text-xs font-semibold text-center leading-tight truncate w-full text-center
                   ${caught ? 'text-gray-200' : seen ? 'text-gray-500' : 'text-gray-700'}`}
               >
                 {caught || seen ? template.name : '???'}
@@ -90,7 +90,7 @@ export default function PokedexScreen() {
                   {template.types.map((t) => (
                     <span
                       key={t}
-                      className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[8px] px-1 rounded`}
+                      className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[9px] px-1.5 py-0.5 rounded`}
                     >
                       {t}
                     </span>

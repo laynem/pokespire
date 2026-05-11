@@ -1,5 +1,6 @@
 import { usePokemonSprite } from '../hooks/usePokemon';
 import type { Pokemon, PokemonType } from '../types';
+import StatBars from './StatBars';
 
 const TYPE_COLORS: Record<string, string> = {
   Normal: 'bg-gray-500', Fire: 'bg-orange-600', Water: 'bg-blue-600',
@@ -47,16 +48,7 @@ export default function PokemonStatCard({ pokemon, selected = false, onClick }: 
         ))}
       </div>
 
-      {/* HP bar */}
-      <div className="w-full flex flex-col gap-0.5">
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>HP</span>
-          <span>{pokemon.maxHp}</span>
-        </div>
-        <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-          <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }} />
-        </div>
-      </div>
+      <StatBars stats={pokemon.baseStats} />
     </button>
   );
 }

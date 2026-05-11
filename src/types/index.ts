@@ -48,6 +48,7 @@ export interface LevelUpResult {
   spAtkGain: number;
   spDefGain: number;
   spdGain: number;
+  newBaseStats: { hp: number; attack: number; defense: number; spAtk: number; spDef: number };
 }
 
 export interface Trainer {

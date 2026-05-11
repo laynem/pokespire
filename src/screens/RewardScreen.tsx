@@ -5,6 +5,7 @@ import { LEARNSETS } from '../data/learnsets';
 import { MOVES } from '../data/moves';
 import { getEnergyCost } from '../utils/combatEngine';
 import MoveCard from '../components/MoveCard';
+import StatBars from '../components/StatBars';
 import type { Move, Pokemon, LevelUpResult } from '../types';
 
 interface RewardState {
@@ -101,6 +102,21 @@ export default function RewardScreen() {
               )}
             </div>
           </div>
+
+          {/* Level-up stat panels */}
+          {levelUps.length > 0 && (
+            <div className="w-full flex flex-col gap-3">
+              {levelUps.map((lu, i) => (
+                <div key={i} className="bg-gray-800 border border-yellow-600/30 rounded-xl px-4 py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">{lu.pokemonName}</span>
+                    <span className="text-yellow-400 font-semibold text-sm">Lv{lu.newLevel} ↑</span>
+                  </div>
+                  <StatBars stats={lu.newBaseStats} />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 

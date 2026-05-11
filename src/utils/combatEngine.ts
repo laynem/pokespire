@@ -564,6 +564,13 @@ export function awardXp(
         spAtkGain: gains.spAtk,
         spDefGain: gains.spDef,
         spdGain: gains.speed,
+        newBaseStats: {
+          hp: pokemon.baseStats.hp,
+          attack: pokemon.baseStats.attack,
+          defense: pokemon.baseStats.defense,
+          spAtk: pokemon.baseStats.spAtk,
+          spDef: pokemon.baseStats.spDef,
+        },
       });
     }
 

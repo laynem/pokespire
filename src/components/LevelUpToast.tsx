@@ -43,7 +43,7 @@ export default function LevelUpToast({ levelUps }: LevelUpToastProps) {
           {current.pokemonName} grew to Lv{current.newLevel}!
         </p>
         <p className="text-gray-800 text-xs mt-1 font-semibold">
-          HP +{current.hpGain}&nbsp;&nbsp;ATK +{current.atkGain}&nbsp;&nbsp;DEF +{current.defGain}&nbsp;&nbsp;SpATK +{current.spAtkGain}&nbsp;&nbsp;SpDEF +{current.spDefGain}&nbsp;&nbsp;SPD +{current.spdGain}
+          HP +{current.hpGain}&nbsp;&nbsp;ATK +{current.atkGain}&nbsp;&nbsp;DEF +{current.defGain}&nbsp;&nbsp;SpA +{current.spAtkGain}&nbsp;&nbsp;SpD +{current.spDefGain}
         </p>
       </div>
     </div>

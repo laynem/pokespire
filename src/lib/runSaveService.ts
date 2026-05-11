@@ -12,9 +12,9 @@ export async function loadSave(userId: string): Promise<RunState | null> {
 }
 
 export async function upsertSave(userId: string, state: RunState): Promise<void> {
-  await supabase.from('run_saves').upsert({
-    user_id: userId,
-    state,
-    updated_at: new Date().toISOString(),
-  });
+  const { error } = await supabase.from('run_saves').upsert(
+    { user_id: userId, state, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
+  if (error) console.error('[runSaveService] upsertSave failed:', error.message);
 }

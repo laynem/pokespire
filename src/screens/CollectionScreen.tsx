@@ -25,7 +25,7 @@ export default function CollectionScreen() {
   const itemsFound = allItems.filter((i) => foundSet.has(i.id)).length;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="h-full bg-gray-900 text-white flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
         <button
@@ -61,9 +61,12 @@ export default function CollectionScreen() {
         </button>
       </div>
 
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto subtle-scroll">
+
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-4 pt-6 flex flex-wrap gap-x-2 gap-y-4 justify-center max-w-lg mx-auto w-full">
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(10.5rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
 
@@ -104,6 +107,7 @@ export default function CollectionScreen() {
       {/* Items tab */}
       {tab === 'items' && (
         <div className="p-3 grid grid-cols-2 gap-2 max-w-lg mx-auto w-full">
+
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 
@@ -139,6 +143,8 @@ export default function CollectionScreen() {
           })}
         </div>
       )}
+
+      </div>{/* end scroll wrapper */}
     </div>
   );
 }

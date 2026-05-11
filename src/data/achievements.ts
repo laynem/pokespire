@@ -3,6 +3,7 @@ export interface AchievementDef {
   name: string;
   description: string;
   icon: string;
+  category: string;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
@@ -11,36 +12,42 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: 'Rock Solid',
     description: 'Defeat Brock and earn the Boulder Badge.',
     icon: '🪨',
+    category: 'Gym Badges',
   },
   {
     id: 'beat_misty',
     name: 'Tidal Wave',
     description: 'Defeat Misty and earn the Cascade Badge.',
     icon: '💧',
+    category: 'Gym Badges',
   },
   {
     id: 'beat_lt_surge',
     name: 'Surge Protector',
     description: 'Defeat Lt. Surge and earn the Thunder Badge.',
     icon: '⚡',
+    category: 'Gym Badges',
   },
   {
     id: 'catch_em_all',
     name: "Catch 'Em All",
     description: 'Catch every Pokémon available in the game.',
     icon: '🏆',
+    category: 'Completionist',
   },
   {
     id: 'card_collector',
     name: 'Full Deck',
     description: 'Collect every move card available in the game.',
     icon: '🃏',
+    category: 'Completionist',
   },
   {
     id: 'item_hoarder',
     name: 'Bag Full',
     description: 'Find every item available in the game.',
     icon: '🎒',
+    category: 'Completionist',
   },
 ];
 

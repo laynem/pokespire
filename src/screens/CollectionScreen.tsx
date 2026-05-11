@@ -106,38 +106,52 @@ export default function CollectionScreen() {
 
       {/* Items tab */}
       {tab === 'items' && (
-        <div className="p-3 grid grid-cols-2 gap-2 max-w-lg mx-auto w-full">
-
+        <div className="p-4 pt-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))', gap: '0.5rem 0.25rem', justifyContent: 'center' }}>
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
+
+            const bg = item.category === 'held'
+              ? 'linear-gradient(180deg, #1e3a5f 0%, #2563eb 50%, #1e3a5f 100%)'
+              : 'linear-gradient(180deg, #14532d 0%, #16a34a 50%, #14532d 100%)';
+
+            if (found) {
+              return (
+                <div
+                  key={item.id}
+                  className="flex flex-col rounded-xl border-2 border-yellow-400/80 overflow-hidden select-none"
+                  style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
+                >
+                  <div className="pt-3 pb-1 px-2 text-center">
+                    <span
+                      className="text-white font-bold drop-shadow leading-tight"
+                      style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.875rem' }}
+                    >
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center mt-2">
+                    <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center">
+                    <span
+                      className="text-white/80 text-xs font-bold drop-shadow capitalize"
+                      style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                    >
+                      {item.category === 'held' ? 'Held Item' : 'Consumable'}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div
                 key={item.id}
-                className={`rounded-lg border p-3 flex flex-col gap-1
-                  ${found
-                    ? 'bg-gray-800 border-gray-600'
-                    : 'bg-gray-800/40 border-gray-800'
-                  }`}
+                className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50 select-none"
+                style={{ width: '8.75rem', height: '12.5rem' }}
               >
-                {found ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="font-semibold text-sm text-white">{item.name}</span>
-                    </div>
-                    <span className={`text-[9px] font-semibold uppercase tracking-wider w-fit px-1.5 py-0.5 rounded
-                      ${item.category === 'held' ? 'bg-blue-700/60 text-blue-300' : 'bg-green-700/60 text-green-300'}`}>
-                      {item.category}
-                    </span>
-                    <p className="text-[10px] text-gray-400 leading-tight">{item.description}</p>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2 opacity-30">
-                    <span className="text-2xl">❓</span>
-                    <span className="text-gray-400 text-sm font-semibold">???</span>
-                  </div>
-                )}
+                <span className="text-3xl mb-2 opacity-30">❓</span>
+                <span className="text-gray-600 text-xs font-bold">???</span>
               </div>
             );
           })}

@@ -25,31 +25,29 @@ function checkAchievement(
     case 'catch_em_all': {
       const catchableCount = CATCHABLE_POKEMON_IDS.length;
       const caughtCount = CATCHABLE_POKEMON_IDS.filter((id) => caught.has(id)).length;
-      return {
-        unlocked: caughtCount >= catchableCount,
-        progress: `${caughtCount} / ${catchableCount} Pokémon`,
-      };
+      return { unlocked: caughtCount >= catchableCount, progress: `${caughtCount} / ${catchableCount}` };
     }
     case 'card_collector': {
       const total = Object.keys(MOVES).length;
       const count = Object.keys(MOVES).filter((id) => cards.has(id)).length;
-      return {
-        unlocked: count >= total,
-        progress: `${count} / ${total} cards`,
-      };
+      return { unlocked: count >= total, progress: `${count} / ${total}` };
     }
     case 'item_hoarder': {
       const total = Object.keys(ITEMS_DATA).length;
       const count = Object.keys(ITEMS_DATA).filter((id) => items.has(id)).length;
-      return {
-        unlocked: count >= total,
-        progress: `${count} / ${total} items`,
-      };
+      return { unlocked: count >= total, progress: `${count} / ${total}` };
     }
     default:
       return { unlocked: false };
   }
 }
+
+const CATEGORY_GRADIENT: Record<string, string> = {
+  'Gym Badges':     'linear-gradient(180deg, #78350f 0%, #d97706 50%, #78350f 100%)',
+  'Completionist':  'linear-gradient(180deg, #2e1065 0%, #7c3aed 50%, #2e1065 100%)',
+};
+
+const LOCKED_BG = 'linear-gradient(180deg, #1f2937 0%, #374151 50%, #1f2937 100%)';
 
 export default function AchievementsScreen() {
   const navigate = useNavigate();
@@ -65,10 +63,12 @@ export default function AchievementsScreen() {
 
   const unlockedCount = results.filter((r) => r.unlocked).length;
 
+  const categories = Array.from(new Set(ACHIEVEMENTS.map((a) => a.category)));
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="h-full bg-gray-900 text-white flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
+      <div className="shrink-0 bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/')}
           className="text-gray-400 hover:text-white transition text-lg leading-none"
@@ -81,38 +81,78 @@ export default function AchievementsScreen() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex flex-col gap-2 p-4 max-w-lg mx-auto w-full">
-        {results.map((a) => (
-          <div
-            key={a.id}
-            className={`rounded-xl border px-4 py-3 flex items-start gap-3 transition
-              ${a.unlocked
-                ? 'bg-yellow-900/20 border-yellow-600/50'
-                : 'bg-gray-800/50 border-gray-700'
-              }`}
-          >
-            <span className={`text-2xl mt-0.5 ${a.unlocked ? '' : 'grayscale opacity-40'}`}>
-              {a.icon}
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={`font-bold text-sm ${a.unlocked ? 'text-yellow-300' : 'text-gray-300'}`}>
-                  {a.name}
-                </span>
-                {a.unlocked && (
-                  <span className="text-green-400 text-xs font-bold">✓ Unlocked</span>
-                )}
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto subtle-scroll">
+        {categories.map((category) => {
+          const catResults = results.filter((a) => a.category === category);
+          return (
+            <div key={category} className="px-4 pt-6 pb-2 max-w-3xl mx-auto w-full">
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">{category}</h2>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))',
+                  gap: '0.5rem 0.25rem',
+                  justifyContent: 'start',
+                }}
+              >
+                {catResults.map((a) => {
+                  const bg = a.unlocked ? (CATEGORY_GRADIENT[a.category] ?? LOCKED_BG) : LOCKED_BG;
+                  const borderClass = a.unlocked ? 'border-yellow-400/80' : 'border-gray-700';
+
+                  return (
+                    <div
+                      key={a.id}
+                      className={`flex flex-col rounded-xl border-2 overflow-hidden select-none ${borderClass}`}
+                      style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
+                    >
+                      {/* Name */}
+                      <div className="pt-3 pb-1 px-2 text-center">
+                        <span
+                          className="text-white font-bold drop-shadow leading-tight"
+                          style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.875rem' }}
+                        >
+                          {a.name}
+                        </span>
+                      </div>
+
+                      {/* Icon */}
+                      <div className={`flex items-center justify-center mt-2 ${a.unlocked ? '' : 'grayscale opacity-30'}`}>
+                        <span style={{ fontSize: '3rem', lineHeight: 1 }}>{a.icon}</span>
+                      </div>
+
+                      {/* Status / progress */}
+                      <div className="flex-1 flex items-center justify-center px-2">
+                        {a.unlocked ? (
+                          <span
+                            className="text-yellow-300 text-xs font-bold drop-shadow text-center"
+                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                          >
+                            ✓ Unlocked
+                          </span>
+                        ) : a.progress ? (
+                          <span
+                            className="text-gray-400 text-xs font-bold text-center"
+                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                          >
+                            {a.progress}
+                          </span>
+                        ) : (
+                          <span
+                            className="text-gray-600 text-xs font-bold"
+                            style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                          >
+                            Locked
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">{a.description}</p>
-              {a.progress && (
-                <p className={`text-xs mt-1 font-semibold ${a.unlocked ? 'text-yellow-400' : 'text-gray-500'}`}>
-                  {a.progress}
-                </p>
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

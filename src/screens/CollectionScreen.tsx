@@ -3,15 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useRunStore } from '../store/runStore';
 import { MOVES } from '../data/moves';
 import { ITEMS_DATA } from '../data/items';
-
-const TYPE_COLORS: Record<string, string> = {
-  Normal: 'bg-gray-500', Fire: 'bg-orange-500', Water: 'bg-blue-500',
-  Electric: 'bg-yellow-400', Grass: 'bg-green-500', Ice: 'bg-cyan-400',
-  Fighting: 'bg-red-600', Poison: 'bg-purple-500', Ground: 'bg-yellow-600',
-  Flying: 'bg-indigo-400', Psychic: 'bg-pink-500', Bug: 'bg-lime-500',
-  Rock: 'bg-yellow-700', Ghost: 'bg-purple-700', Dragon: 'bg-indigo-600',
-  Dark: 'bg-gray-700', Steel: 'bg-slate-400', Fairy: 'bg-pink-300',
-};
+import MoveCard from '../components/MoveCard';
+import { getEnergyCost } from '../utils/combatEngine';
 
 type Tab = 'cards' | 'items';
 
@@ -70,44 +63,38 @@ export default function CollectionScreen() {
 
       {/* Cards tab */}
       {tab === 'cards' && (
-        <div className="p-3 grid grid-cols-2 gap-2 max-w-lg mx-auto w-full">
+        <div className="p-4 pt-6 flex flex-wrap gap-x-2 gap-y-4 justify-center max-w-lg mx-auto w-full">
           {allMoves.map((move) => {
             const collected = collectedSet.has(move.id);
-            const typeColor = TYPE_COLORS[move.type] ?? 'bg-gray-600';
+
+            if (collected) {
+              return (
+                <MoveCard
+                  key={move.id}
+                  move={move}
+                  energyCost={getEnergyCost(move)}
+                  currentPp={move.maxPp}
+                  disabled={false}
+                  onClick={() => {}}
+                />
+              );
+            }
 
             return (
-              <div
-                key={move.id}
-                className={`rounded-lg border p-2.5 flex flex-col gap-1 transition
-                  ${collected
-                    ? 'bg-gray-800 border-gray-600'
-                    : 'bg-gray-800/40 border-gray-800'
-                  }`}
-              >
-                {collected ? (
-                  <>
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="font-semibold text-sm text-white truncate">{move.name}</span>
-                      <span className={`${typeColor} text-white text-[9px] px-1.5 py-0.5 rounded shrink-0`}>
-                        {move.type}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <span className="capitalize">{move.category}</span>
-                      {move.power > 0 && (
-                        <span className="text-yellow-400 font-semibold">{move.power} PWR</span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-gray-500 leading-tight line-clamp-2">
-                      {move.description}
-                    </p>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2 opacity-30">
-                    <span className="text-xl">❓</span>
-                    <span className="text-gray-400 text-sm font-semibold">???</span>
-                  </div>
-                )}
+              <div key={move.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
+                <div
+                  className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
+                  style={{ width: 30, height: 30, top: 0, left: 0 }}
+                >
+                  <span className="text-gray-500 text-sm font-bold leading-none">?</span>
+                </div>
+                <div
+                  className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
+                  style={{ width: '8.75rem', height: '12.5rem' }}
+                >
+                  <span className="text-3xl mb-2 opacity-30">❓</span>
+                  <span className="text-gray-600 text-xs font-bold">???</span>
+                </div>
               </div>
             );
           })}

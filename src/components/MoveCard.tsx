@@ -14,8 +14,10 @@ import dragonIcon from '../assets/dragon.png';
 import darkIcon from '../assets/dark.png';
 import steelIcon from '../assets/steel.png';
 import fairyIcon from '../assets/fairy.png';
+import normalIcon from '../assets/normal.png';
 
 const TYPE_ICON: Record<string, string> = {
+  Normal: normalIcon,
   Fire: fireIcon,
   Water: waterIcon,
   Electric: electricIcon,
@@ -33,7 +35,7 @@ const TYPE_ICON: Record<string, string> = {
 };
 
 const TYPE_EMOJI: Record<string, string> = {
-  Normal: '🔘', Bug: '🐛', Rock: '🪨', Ghost: '👻',
+  Bug: '🐛', Rock: '🪨', Ghost: '👻',
 };
 
 const TYPE_GRADIENT: Record<string, { dark: string; mid: string }> = {

@@ -166,17 +166,17 @@ export default function CatchScreen() {
         )}
 
         {/* Action buttons */}
-        <div className="w-full flex flex-col gap-3">
+        <div className="flex flex-col items-center gap-3">
           <button
             onClick={handleConfirm}
             disabled={selectedIndex === null || (partyFull && swapTarget === null)}
-            className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-40 disabled:cursor-not-allowed text-gray-900 font-bold py-3 rounded-lg transition text-lg"
+            className="bg-yellow-500 hover:bg-yellow-400 disabled:opacity-40 disabled:cursor-not-allowed text-gray-900 font-bold py-3 px-10 rounded-lg transition text-lg"
           >
             {partyFull ? 'Swap Pokémon' : 'Add to Party'}
           </button>
           <button
             onClick={handleSkip}
-            className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-3 rounded-lg transition"
+            className="text-gray-500 hover:text-gray-300 text-sm transition"
           >
             Skip
           </button>

@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { RunState, Trainer, Pokemon, MapNode, Item, Move } from '../types';
 
 interface RunActions {
   startRun: (trainer: Trainer, starterPokemon: Pokemon) => void;
   endRun: () => void;
+  hydrate: (state: Partial<RunState>) => void;
   setCurrentNode: (nodeId: string) => void;
   clearNode: (nodeId: string) => void;
   addGold: (amount: number) => void;
@@ -38,9 +38,7 @@ const initialState: RunState = {
   seed: 0,
 };
 
-export const useRunStore = create<RunState & RunActions>()(
-  persist(
-    (set, get) => ({
+export const useRunStore = create<RunState & RunActions>()((set, get) => ({
       ...initialState,
 
       startRun: (trainer, starterPokemon) =>
@@ -127,9 +125,6 @@ export const useRunStore = create<RunState & RunActions>()(
           currentMap: [],
           currentNodeId: null,
         })),
-    }),
-    {
-      name: 'pokespire-run',
-    }
-  )
-);
+
+      hydrate: (state) => set(state),
+    }));

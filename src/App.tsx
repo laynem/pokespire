@@ -1,8 +1,11 @@
+import { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import GameHeader from './components/GameHeader';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import { useAuthStore } from './store/authStore';
+import { useRunStore } from './store/runStore';
+import { loadSave, upsertSave } from './lib/runSaveService';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import StarterSelectScreen from './screens/StarterSelectScreen';
 import MapScreen from './screens/MapScreen';
@@ -21,8 +24,36 @@ function AnimatedRoutes() {
   const location = useLocation();
   const showHeader = !NO_HEADER_ROUTES.has(location.pathname);
   const { user, loading } = useAuthStore();
+  const [saveLoaded, setSaveLoaded] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user) {
+      useRunStore.getState().endRun();
+      setSaveLoaded(true);
+      return;
+    }
+
+    setSaveLoaded(false);
+    loadSave(user.id).then((saved) => {
+      if (saved) useRunStore.getState().hydrate(saved);
+      setSaveLoaded(true);
+    });
+
+    const unsub = useRunStore.subscribe((state) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        upsertSave(user.id, state);
+      }, 1500);
+    });
+
+    return () => {
+      unsub();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [user]);
+
+  if (loading || !saveLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />

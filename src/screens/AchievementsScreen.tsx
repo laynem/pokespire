@@ -93,7 +93,7 @@ export default function AchievementsScreen() {
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))',
                   gap: '0.5rem 0.25rem',
-                  justifyContent: 'start',
+                  justifyContent: 'center',
                 }}
               >
                 {catResults.map((a) => {

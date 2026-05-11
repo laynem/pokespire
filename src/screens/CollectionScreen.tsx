@@ -110,16 +110,12 @@ export default function CollectionScreen() {
           {allItems.map((item) => {
             const found = foundSet.has(item.id);
 
-            const bg = item.category === 'held'
-              ? 'linear-gradient(180deg, #1e3a5f 0%, #2563eb 50%, #1e3a5f 100%)'
-              : 'linear-gradient(180deg, #14532d 0%, #16a34a 50%, #14532d 100%)';
-
             if (found) {
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col rounded-xl border-2 border-yellow-400/80 overflow-hidden select-none"
-                  style={{ background: bg, width: '8.75rem', height: '12.5rem' }}
+                  className="flex flex-col rounded-xl border-2 border-yellow-400/80 bg-gray-800 overflow-hidden select-none"
+                  style={{ width: '8.75rem', height: '12.5rem' }}
                 >
                   <div className="pt-3 pb-1 px-2 text-center">
                     <span
@@ -132,12 +128,12 @@ export default function CollectionScreen() {
                   <div className="flex items-center justify-center mt-2">
                     <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
                   </div>
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex-1 flex items-center justify-center px-2">
                     <span
-                      className="text-white/80 text-xs font-bold drop-shadow capitalize"
-                      style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
+                      className="text-gray-300 text-center leading-tight"
+                      style={{ fontFamily: "'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.6rem' }}
                     >
-                      {item.category === 'held' ? 'Held Item' : 'Consumable'}
+                      {item.description}
                     </span>
                   </div>
                 </div>

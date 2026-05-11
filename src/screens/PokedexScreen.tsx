@@ -52,7 +52,7 @@ export default function PokedexScreen() {
           return (
             <div
               key={template.id}
-              className={`rounded-xl border flex flex-col items-center justify-center pt-6 pb-3 px-3 gap-2 relative
+              className={`rounded-xl border relative p-3 pt-6
                 ${caught
                   ? 'bg-gray-800 border-yellow-600/40'
                   : seen
@@ -66,37 +66,42 @@ export default function PokedexScreen() {
                 <img
                   src={getPokemonSpriteUrl(template.id)}
                   alt={template.name}
-                  className="w-full aspect-square object-contain self-stretch"
                   style={{
+                    display: 'block',
+                    width: '100%',
+                    aspectRatio: '1',
+                    objectFit: 'contain',
                     imageRendering: 'pixelated',
                     filter: caught ? 'none' : 'grayscale(100%) brightness(40%)',
                   }}
                 />
               ) : (
-                <div className="w-full aspect-square self-stretch flex items-center justify-center">
+                <div style={{ width: '100%', aspectRatio: '1' }} className="flex items-center justify-center">
                   <span className="text-gray-600 text-4xl font-bold">?</span>
                 </div>
               )}
 
-              <span
-                className={`text-xs font-semibold text-center leading-tight truncate w-full text-center
-                  ${caught ? 'text-gray-200' : seen ? 'text-gray-500' : 'text-gray-700'}`}
-              >
-                {caught || seen ? template.name : '???'}
-              </span>
+              <div className="mt-2 flex flex-col items-center gap-1">
+                <span
+                  className={`text-xs font-semibold text-center leading-tight truncate w-full text-center
+                    ${caught ? 'text-gray-200' : seen ? 'text-gray-500' : 'text-gray-700'}`}
+                >
+                  {caught || seen ? template.name : '???'}
+                </span>
 
-              {caught && (
-                <div className="flex gap-0.5 flex-wrap justify-center">
-                  {template.types.map((t) => (
-                    <span
-                      key={t}
-                      className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[9px] px-1.5 py-0.5 rounded`}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
+                {caught && (
+                  <div className="flex gap-0.5 flex-wrap justify-center">
+                    {template.types.map((t) => (
+                      <span
+                        key={t}
+                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[9px] px-1.5 py-0.5 rounded`}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

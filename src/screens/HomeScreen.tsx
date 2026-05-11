@@ -12,7 +12,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white gap-6">
+    <div className="flex flex-col items-center justify-start pt-[20vh] min-h-screen bg-gray-900 text-white gap-6">
       <img src={logoFull} alt="PokeSpire" className="w-[36rem] drop-shadow-lg" />
       <div className="flex flex-col gap-3 w-48">
         {inRun && (

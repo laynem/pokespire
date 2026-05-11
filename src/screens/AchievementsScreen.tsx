@@ -95,16 +95,10 @@ export default function AchievementsScreen() {
         {categories.map((category) => {
           const catResults = results.filter((a) => a.category === category);
           return (
-            <div key={category} className="pt-6 pb-2 w-full">
-              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">{category}</h2>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(8.75rem, max-content))',
-                  gap: '0.5rem 0.25rem',
-                  justifyContent: 'center',
-                }}
-              >
+            <div key={category} className="pt-6 pb-2 w-full flex justify-center px-4">
+              <div>
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">{category}</h2>
+              <div className="flex flex-wrap gap-x-1 gap-y-2">
                 {catResults.map((a) => {
                   const bg = a.unlocked ? (CATEGORY_GRADIENT[a.category] ?? LOCKED_BG) : LOCKED_BG;
                   const borderClass = a.unlocked ? 'border-yellow-400/80' : 'border-gray-700';
@@ -162,6 +156,7 @@ export default function AchievementsScreen() {
                   );
                 })}
               </div>
+              </div>{/* fit-content inner */}
             </div>
           );
         })}

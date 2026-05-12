@@ -61,7 +61,7 @@ export default function PokedexScreen() {
                 <div className="pt-1 pb-0 px-1 text-center">
                   <span
                     className={`font-bold drop-shadow leading-tight ${caught ? 'text-white' : 'text-gray-400'}`}
-                    style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.6rem' }}
+                    style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '1.15rem', letterSpacing: '0.05rem' }}
                   >
                     {template.name}
                   </span>
@@ -83,7 +83,7 @@ export default function PokedexScreen() {
                     template.types.map((t) => (
                       <span
                         key={t}
-                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[8px] px-1 py-0.5 rounded`}
+                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[10px] font-bold px-1 py-0.5 rounded`}
                       >
                         {t}
                       </span>

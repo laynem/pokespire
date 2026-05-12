@@ -58,15 +58,7 @@ export default function PokedexScreen() {
                   ${caught ? 'border-yellow-400/80' : 'border-gray-500/50'}`}
                 style={{ width: '8.75rem', height: '12.5rem' }}
               >
-                <div className="pt-1 pb-0 px-1 text-center">
-                  <span
-                    className={`font-bold drop-shadow leading-tight ${caught ? 'text-white' : 'text-gray-400'}`}
-                    style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '1.15rem', letterSpacing: '0.05rem' }}
-                  >
-                    {template.name}
-                  </span>
-                </div>
-                <div className="flex-1 flex items-center justify-center px-1">
+                <div className="flex-1 min-h-0 flex items-center justify-center px-1 pt-2">
                   <img
                     src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${template.id}.png`}
                     alt={template.name}
@@ -78,19 +70,31 @@ export default function PokedexScreen() {
                     }}
                   />
                 </div>
-                <div className="pb-1 flex gap-0.5 flex-wrap justify-center px-1">
-                  {caught ? (
-                    template.types.map((t) => (
-                      <span
-                        key={t}
-                        className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[10px] font-bold px-1 py-0.5 rounded`}
-                      >
-                        {t}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-600 text-[8px]">#{template.id}</span>
-                  )}
+                <div className="text-center leading-none pb-0.5">
+                  <span
+                    className="text-gray-400"
+                    style={{ fontFamily: "'Futura PT', sans-serif", fontWeight: 400, fontSize: '0.6rem', letterSpacing: '0.08em' }}
+                  >
+                    #{String(template.id).padStart(4, '0')}
+                  </span>
+                </div>
+                <div className="text-center px-1 pb-1 leading-tight">
+                  <span
+                    className={`drop-shadow ${caught ? 'text-white' : 'text-gray-400'}`}
+                    style={{ fontFamily: "'Futura PT', sans-serif", fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.02em' }}
+                  >
+                    {template.name}
+                  </span>
+                </div>
+                <div className="pb-2 flex gap-0.5 flex-wrap justify-center px-1">
+                  {caught && template.types.map((t) => (
+                    <span
+                      key={t}
+                      className={`${TYPE_COLORS[t] ?? 'bg-gray-600'} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full`}
+                    >
+                      {t.toUpperCase()}
+                    </span>
+                  ))}
                 </div>
               </div>
               </div>

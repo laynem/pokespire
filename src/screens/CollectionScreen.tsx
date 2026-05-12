@@ -198,16 +198,16 @@ export default function CollectionScreen() {
                         {item.name}
                       </span>
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex items-center justify-center mt-2">
                       {item.sprite
-                        ? <img src={item.sprite} alt={item.name} className="w-8 h-8 object-contain" style={{ imageRendering: 'pixelated' }} />
-                        : <span style={{ fontSize: '2rem', lineHeight: 1 }}>{item.icon}</span>
+                        ? <img src={item.sprite} alt={item.name} className="w-14 h-14 object-contain drop-shadow" style={{ imageRendering: 'pixelated' }} />
+                        : <span style={{ fontSize: '3rem', lineHeight: 1 }}>{item.icon}</span>
                       }
                     </div>
-                    <div className="flex items-center justify-center px-1 pb-1">
+                    <div className="flex-1 flex items-center justify-center px-1">
                       <span
-                        className="text-gray-300 text-center leading-tight"
-                        style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif", fontSize: '0.45rem' }}
+                        className="text-white text-sm font-bold drop-shadow text-center"
+                        style={{ fontFamily: "'Futura PT', 'Century Gothic', 'Trebuchet MS', sans-serif" }}
                       >
                         {item.description}
                       </span>

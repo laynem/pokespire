@@ -28,46 +28,37 @@ function getNodeType(rng: () => number, eventIdx: number, laneLength: number): {
   if (eventIdx < 3) {
     // First 3 events: no pokecenter
     weights = [
-      ['normal_battle', 50],
+      ['normal_battle', 65],
       ['catch',         35],
-      ['rest',          15],
     ];
   } else if (eventIdx <= 4) {
     // Events 3-4: elevated catch
     weights = [
-      ['normal_battle', 40],
-      ['catch',         30],
-      ['rest',          15],
-      ['elite_battle',  10],
+      ['normal_battle', 60],
+      ['catch',         35],
       ['pokecenter',     5],
     ];
   } else if (eventIdx < lastTwentyPct) {
     // Normal distribution
     weights = [
-      ['normal_battle', 45],
-      ['elite_battle',  15],
-      ['catch',         10],
-      ['rest',          15],
+      ['normal_battle', 70],
+      ['catch',         15],
       ['pokecenter',    10],
       ['shop',           5],
     ];
   } else {
     // Last 20%: elevated pokecenter
     weights = [
-      ['normal_battle', 35],
-      ['elite_battle',  15],
-      ['rest',          20],
-      ['pokecenter',    25],
+      ['normal_battle', 65],
+      ['pokecenter',    30],
       ['shop',           5],
     ];
   }
 
   const type = weightedPick(rng, weights);
-  let trainerVariant: 'male' | 'female' | 'boss' | undefined;
+  let trainerVariant: 'male' | 'female' | undefined;
   if (type === 'normal_battle') {
     trainerVariant = rng() < 0.5 ? 'male' : 'female';
-  } else if (type === 'elite_battle') {
-    trainerVariant = 'boss';
   }
 
   return { type, trainerVariant };

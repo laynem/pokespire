@@ -6,6 +6,10 @@ import MapNodeIcon, { NODE_META } from '../components/MapNodeIcon';
 import LevelUpToast from '../components/LevelUpToast';
 import { ACT_BOSS } from '../data/gymLeaders';
 import type { MapNode, NodeType, PokemonType, LevelUpResult } from '../types';
+import enemyMaleImg from '../assets/enemy_male.png';
+import pokeballLegendImg from '../assets/pokeball.png';
+import pokecenterLegendImg from '../assets/pokecenter.png';
+import pokemartLegendImg from '../assets/pokemart.png';
 
 const ACT_THEMES = {
   1: { bg: 'bg-green-900',  title: 'Route 1',       subtitle: 'Pallet Town → Pewter City' },
@@ -82,7 +86,7 @@ const NODE_ROUTE: Record<NodeType, string> = {
   shop:          '/mart',
 };
 
-const ROW_HEIGHT = 110;
+const ROW_HEIGHT = 150;
 
 // Base column fractions for 1-4 columns
 function getColFractions(numCols: number): number[] {
@@ -228,7 +232,7 @@ export default function MapScreen() {
       {levelUps.length > 0 && <LevelUpToast levelUps={levelUps} />}
 
       {/* ── Left Sidebar ─────────────────────────────────────────── */}
-      <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto">
+      <div className="w-44 shrink-0 flex flex-col bg-black/40 border-r border-white/10 backdrop-blur-sm overflow-y-auto subtle-scroll">
 
         {/* Act info */}
         <div className="p-3 border-b border-white/10">
@@ -278,19 +282,19 @@ export default function MapScreen() {
         <div className="px-3 py-2 border-t border-white/10">
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-1.5">Legend</p>
           <div className="flex flex-col gap-1">
-            {(['normal_battle', 'elite_battle', 'catch', 'rest', 'pokecenter', 'shop'] as NodeType[]).map((t) => {
+            {([
+              { t: 'normal_battle', img: enemyMaleImg },
+              { t: 'catch',        img: pokeballLegendImg },
+              { t: 'pokecenter',   img: pokecenterLegendImg },
+              { t: 'shop',         img: pokemartLegendImg },
+            ] as { t: NodeType; img: string | null }[]).map(({ t, img }) => {
               const { label } = NODE_META[t];
               return (
                 <span key={t} className="flex items-center gap-1.5 text-xs text-gray-400">
-                  {t === 'catch' ? (
-                    <svg viewBox="0 0 100 100" className="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="50" cy="50" r="46" fill="white" stroke="#6b7280" strokeWidth="8"/>
-                      <path d="M 4 50 A 46 46 0 0 1 96 50 Z" fill="#ef4444"/>
-                      <rect x="4" y="44" width="92" height="12" fill="#374151"/>
-                      <circle cx="50" cy="50" r="13" fill="white" stroke="#374151" strokeWidth="7"/>
-                    </svg>
+                  {img ? (
+                    <img src={img} alt={label} className="w-3.5 h-3.5 shrink-0 object-contain" />
                   ) : (
-                    <span>{NODE_META[t].icon}</span>
+                    <span className="w-3.5 text-center">🏕️</span>
                   )}
                   <span>{label}</span>
                 </span>
@@ -311,7 +315,7 @@ export default function MapScreen() {
       </div>
 
       {/* ── Map Canvas ───────────────────────────────────────────── */}
-      <div ref={mapScrollRef} className="flex-1 overflow-y-auto relative">
+      <div ref={mapScrollRef} className="flex-1 overflow-y-auto subtle-scroll relative">
         {/* Pixel grass texture (Act 1 only; other acts use plain bg) */}
         {act === 1 && <GrassTexture seed={seed} />}
 
@@ -341,6 +345,7 @@ export default function MapScreen() {
                       state={state}
                       isCurrent={node.id === visualCurrentId}
                       bossLeaderId={node.type === 'boss' ? ACT_BOSS[act] : undefined}
+                      trainerVariant={node.trainerVariant}
                       onClick={() => handleNodeClick(node)}
                     />
                   </div>

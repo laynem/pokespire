@@ -193,7 +193,7 @@ export default function CollectionScreen() {
                     <div className="pt-1 pb-0 px-1 text-center">
                       <span
                         className="text-white font-bold drop-shadow leading-tight"
-                        style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '0.6rem' }}
+                        style={{ fontFamily: "'Gill Sans MT', 'Gill Sans', 'Calibri', sans-serif", fontSize: '1.15rem', letterSpacing: '0.05rem' }}
                       >
                         {item.name}
                       </span>

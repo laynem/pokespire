@@ -104,12 +104,6 @@ export default function PokedexScreen() {
           return (
             <div key={template.id} className="relative select-none" style={{ paddingTop: 15, paddingLeft: 15 }}>
               <div
-                className="absolute z-10 rounded-full bg-black/80 border-2 border-gray-600 flex items-center justify-center"
-                style={{ width: 30, height: 30, top: 0, left: 0 }}
-              >
-                <span className="text-gray-500 text-sm font-bold leading-none">?</span>
-              </div>
-              <div
                 className="flex flex-col items-center justify-center rounded-xl border-2 border-gray-700 bg-gray-800/50"
                 style={{ width: '8.75rem', height: '12.5rem' }}
               >
